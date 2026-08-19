@@ -1,5 +1,7 @@
 # Exposure Lab
 
+**[Live website](https://exposure-lab.afsharsn.chatgpt.site)**
+
 I designed and implemented Exposure Lab as an interactive photography tool. It helps photographers understand the trade-offs between aperture, shutter speed, ISO, and focal length before taking a photograph.
 
 ## What I built
@@ -12,7 +14,7 @@ I designed and implemented Exposure Lab as an interactive photography tool. It h
 
 ## Technology
 
-Next.js-compatible React, TypeScript, CSS, and Vinext for Cloudflare deployment.
+React, TypeScript, CSS, Next.js-compatible routing, and Vinext for Cloudflare deployment.
 
 ## Run locally
 
