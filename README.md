@@ -4,7 +4,9 @@ I build practical applications that turn personal interests and everyday workflo
 
 ## Featured website: Exposure Lab
 
-[Exposure Lab](./websites/exposure-lab) is an interactive photography exposure planner. It calculates exposure value, explains scene-light estimates, checks handheld shutter speed against focal length, and includes portrait, street, landscape, and action presets.
+**[Open the live website](https://exposure-lab.afsharsn.chatgpt.site)** · [View the source](./websites/exposure-lab)
+
+Exposure Lab is an interactive photography exposure planner. It calculates exposure value, explains scene-light estimates, checks handheld shutter speed against focal length, and includes portrait, street, landscape, and action presets.
 
 I implemented the responsive interface with React, TypeScript, and CSS. The calculator is presented honestly as an educational estimator.
 
