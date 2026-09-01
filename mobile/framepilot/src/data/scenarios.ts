@@ -23,6 +23,15 @@ export const scenarios: Scenario[] = [
     special: ['Expose for the face, protect practical lights', 'Prefer mechanical shutter under LEDs', 'Capture a short burst to reduce blink risk'],
   },
   {
+    id: 'group-portrait', name: 'Group portrait', category: 'people', icon: '◉',
+    shortDescription: 'Keep every face sharp while preserving natural expressions.', defaultLight: 'overcast', defaultMotion: 'slow', defaultIntent: 'balanced',
+    aperture: [4, 8], shutterDenominator: [200, 500], isoMax: 3200, focalRange: [35, 85], metering: 'Face priority / multi',
+    focusMode: 'AF-C', focusArea: 'Zone over the nearest row', subjectDetection: 'Human face/eye', driveMode: 'Low continuous', whiteBalance: 'Daylight / AWB',
+    fileFormat: 'RAW + JPEG/HEIF', flash: 'Large bounced or off-camera fill', stabilization: 'On handheld; off on tripod',
+    special: ['Place faces near the same focus plane', 'Focus about one-third into a deep group', 'Take several frames to protect against blinks'],
+  },
+
+  {
     id: 'environmental-portrait', name: 'Environmental portrait', category: 'people', icon: '▣',
     shortDescription: 'Keep the person and their surroundings meaningful.', defaultLight: 'golden', defaultMotion: 'still', defaultIntent: 'balanced',
     aperture: [3.2, 5.6], shutterDenominator: [160, 500], isoMax: 3200, focalRange: [24, 50], metering: 'Multi', focusMode: 'AF-C',

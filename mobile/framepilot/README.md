@@ -1,8 +1,8 @@
 # FramePilot
 
-I built FramePilot as a cross-platform field assistant for photographers who need a complete, reasoned camera setup rather than three isolated exposure values. The same Expo/React Native codebase runs on iOS and Android, and the private dashboard is available only after sign-in or an explicit demo session.
+I built FramePilot as a cross-platform field assistant for photographers who need a complete, reasoned camera setup rather than three isolated exposure values. The same Expo/React Native codebase runs on iOS, Android, and the web, and the private dashboard is available only after sign-in or an explicit demo session.
 
-FramePilot starts with the photograph—portrait, wildlife, sport, landscape, macro, astrophotography, street, event, commercial, creative, or video—and then adapts the recommendation to the real light, subject movement, creative intent, sensor format, focal length, maximum aperture, stabilisation, handheld/tripod use, flash availability, and intended output.
+The live web version is available at **[framepilot-web.afsharsn.chatgpt.site](https://framepilot-web.afsharsn.chatgpt.site)**. It uses the same routes, dashboard, scenario catalog, adjustment engine, saved-setup workflow, and responsive interface as the mobile application.\n\nFramePilot starts with the photograph—portrait, wildlife, sport, landscape, macro, astrophotography, street, event, commercial, creative, or video—and then adapts the recommendation to the real light, subject movement, creative intent, sensor format, focal length, maximum aperture, stabilisation, handheld/tripod use, flash availability, and intended output.
 
 ## What I implemented
 
@@ -10,7 +10,7 @@ FramePilot starts with the photograph—portrait, wildlife, sport, landscape, ma
 - Supabase Auth integration through its client-safe REST endpoints
 - A useful demo mode when a backend has not yet been configured
 - A private dashboard with the current field setup, gear profile, quick scenarios, and saved-setup count
-- 26 field scenarios covering people, action, nature, low light, travel, creative work, commercial photography, and video
+- 27 field scenarios covering people, action, nature, low light, travel, creative work, commercial photography, and video
 - A recommendation engine that derives shutter speed from subject motion, focal length, crop factor, stabilisation, and creative intent
 - ISO estimation from aperture, shutter time, and approximate scene EV, with an output-quality-aware ceiling
 - Lens-aware aperture recommendations that never request an aperture wider than the configured lens can provide
@@ -38,7 +38,7 @@ The output deliberately goes beyond aperture, shutter, and ISO:
 
 ## Scenario coverage
 
-- Daylight, low-light, and environmental portrait
+- Daylight, low-light, environmental, and group portrait
 - Wedding and event photography
 - Perched wildlife, birds in flight, pets, and insect macro
 - Outdoor sport, indoor sport, and panning
@@ -66,13 +66,13 @@ flowchart TD
 
 | Layer | Implementation |
 |---|---|
-| Mobile UI | React Native 0.86 and Expo SDK 57 |
+| Cross-platform interface | React Native 0.86, React Native Web, and Expo SDK 57 |
 | Navigation | Expo Router protected routes and tabs |
 | Language | Strict TypeScript |
 | Authentication | Supabase Auth REST API |
 | Persistence | Supabase/PostgreSQL with row-level security |
 | Domain logic | Pure, testable TypeScript recommendation engine |
-| Platforms | iOS 16.4+, Android 7+, and an optional static web build |
+| Platforms | iOS 16.4+, Android 7+, and a deployed responsive static web build |
 
 The recommendation engine is independent of the screen components. This keeps the photography logic testable and allows a future camera-control integration or watch companion to reuse the same decisions.
 
@@ -86,7 +86,7 @@ cp .env.example .env
 npm start
 ```
 
-Use `i` for the iOS simulator, `a` for Android, or scan the Expo QR code. Demo mode works without configuring Supabase.
+Use `i` for the iOS simulator, `a` for Android, `w` for the browser, or scan the Expo QR code. Demo mode works without configuring Supabase.
 
 ## Configure real accounts and cloud saves
 
