@@ -1,0 +1,193 @@
+import type { Scenario, ScenarioCategory } from '@/types/photography';
+
+export const categoryLabels: Record<'all' | ScenarioCategory, string> = {
+  all: 'All', people: 'People', action: 'Action', nature: 'Nature', 'low-light': 'Low light',
+  travel: 'Travel', creative: 'Creative', commercial: 'Commercial', video: 'Video',
+};
+
+export const scenarios: Scenario[] = [
+  {
+    id: 'portrait-daylight', name: 'Daylight portrait', category: 'people', icon: '◎',
+    shortDescription: 'Natural skin, soft backgrounds, reliable eye focus.', defaultLight: 'bright', defaultMotion: 'slow', defaultIntent: 'balanced',
+    aperture: [1.8, 2.8], shutterDenominator: [250, 800], isoMax: 1600, focalRange: [50, 135], metering: 'Face priority / multi',
+    focusMode: 'AF-C', focusArea: 'Tracking: flexible spot', subjectDetection: 'Human eye', driveMode: 'Low continuous', whiteBalance: 'Daylight or AWB ambience',
+    fileFormat: 'RAW + JPEG/HEIF', flash: 'Optional fill, -1.0 EV', stabilization: 'On (standard)',
+    special: ['Enable face/eye priority', 'Watch highlight clipping on skin', 'Use a reflector before adding flash'],
+  },
+  {
+    id: 'portrait-low-light', name: 'Low-light portrait', category: 'low-light', icon: '◐',
+    shortDescription: 'Sharp eyes while preserving the atmosphere.', defaultLight: 'low', defaultMotion: 'slow', defaultIntent: 'balanced',
+    aperture: [1.4, 2.2], shutterDenominator: [125, 320], isoMax: 12800, focalRange: [35, 135], metering: 'Highlight-weighted or multi',
+    focusMode: 'AF-C', focusArea: 'Tracking: spot M', subjectDetection: 'Human eye', driveMode: 'Low continuous', whiteBalance: 'AWB white priority or Kelvin',
+    fileFormat: 'Lossless compressed RAW', flash: 'Bounce flash / TTL, -0.7 EV', stabilization: 'On (active if available)',
+    special: ['Expose for the face, protect practical lights', 'Prefer mechanical shutter under LEDs', 'Capture a short burst to reduce blink risk'],
+  },
+  {
+    id: 'environmental-portrait', name: 'Environmental portrait', category: 'people', icon: '▣',
+    shortDescription: 'Keep the person and their surroundings meaningful.', defaultLight: 'golden', defaultMotion: 'still', defaultIntent: 'balanced',
+    aperture: [3.2, 5.6], shutterDenominator: [160, 500], isoMax: 3200, focalRange: [24, 50], metering: 'Multi', focusMode: 'AF-C',
+    focusArea: 'Tracking: zone', subjectDetection: 'Human eye', driveMode: 'Single or low continuous', whiteBalance: 'Daylight / shade',
+    fileFormat: 'RAW + JPEG/HEIF', flash: 'Off-camera fill optional', stabilization: 'On', special: ['Check edge distortion', 'Keep background lines away from the head', 'Bracket when the background is much brighter'],
+  },
+  {
+    id: 'wedding-event', name: 'Wedding & event', category: 'people', icon: '◇',
+    shortDescription: 'Quiet, responsive coverage across changing light.', defaultLight: 'indoor', defaultMotion: 'slow', defaultIntent: 'freeze',
+    aperture: [1.8, 3.2], shutterDenominator: [200, 500], isoMax: 12800, focalRange: [24, 200], metering: 'Multi with face priority',
+    focusMode: 'AF-C', focusArea: 'Tracking: wide', subjectDetection: 'Human eye', driveMode: 'Medium continuous', whiteBalance: 'AWB ambience',
+    fileFormat: 'RAW to both cards', flash: 'Bounce TTL, -0.3 to -1 EV', stabilization: 'On', special: ['Dual-card backup', 'Disable focus confirmation sounds', 'Check anti-flicker before the ceremony'],
+  },
+  {
+    id: 'wildlife-static', name: 'Perched wildlife', category: 'nature', icon: '⌁',
+    shortDescription: 'Fine detail and stable framing for resting animals.', defaultLight: 'overcast', defaultMotion: 'slow', defaultIntent: 'balanced',
+    aperture: [5.6, 8], shutterDenominator: [500, 1250], isoMax: 6400, focalRange: [200, 600], metering: 'Multi', focusMode: 'AF-C',
+    focusArea: 'Tracking: spot M', subjectDetection: 'Bird/animal eye', driveMode: 'Medium continuous', whiteBalance: 'AWB or cloudy',
+    fileFormat: 'Lossless compressed RAW', flash: 'Usually off', stabilization: 'Mode 1 / standard', special: ['Use focus limiter', 'Support the lens or use a monopod', 'Leave space in the direction of the gaze'],
+  },
+  {
+    id: 'birds-in-flight', name: 'Birds in flight', category: 'action', icon: '⌃',
+    shortDescription: 'Fast acquisition and high keeper rate for erratic flight.', defaultLight: 'bright', defaultMotion: 'erratic', defaultIntent: 'freeze',
+    aperture: [5.6, 8], shutterDenominator: [1600, 4000], isoMax: 12800, focalRange: [300, 600], metering: 'Multi', focusMode: 'AF-C',
+    focusArea: 'Tracking: zone or wide', subjectDetection: 'Bird eye', driveMode: 'High continuous', whiteBalance: 'Daylight / AWB',
+    fileFormat: 'Compressed RAW', flash: 'Off', stabilization: 'Panning / mode 2', special: ['Pre-focus near the flight path', 'Use electronic shutter only if rolling shutter is controlled', 'Keep Auto ISO minimum shutter high'],
+  },
+  {
+    id: 'pets-action', name: 'Pets in motion', category: 'action', icon: '∞',
+    shortDescription: 'Track unpredictable movement close to the camera.', defaultLight: 'overcast', defaultMotion: 'erratic', defaultIntent: 'freeze',
+    aperture: [2.8, 5.6], shutterDenominator: [1000, 2500], isoMax: 12800, focalRange: [35, 200], metering: 'Multi', focusMode: 'AF-C',
+    focusArea: 'Tracking: wide', subjectDetection: 'Animal eye', driveMode: 'High continuous', whiteBalance: 'AWB', fileFormat: 'RAW + JPEG/HEIF',
+    flash: 'Avoid direct flash', stabilization: 'On', special: ['Shoot from eye level', 'Allow room for sudden direction changes', 'Use short bursts rather than holding continuously'],
+  },
+  {
+    id: 'outdoor-sports', name: 'Outdoor sport', category: 'action', icon: '↗',
+    shortDescription: 'Freeze decisive action in daylight or stadium light.', defaultLight: 'bright', defaultMotion: 'fast', defaultIntent: 'freeze',
+    aperture: [2.8, 5.6], shutterDenominator: [1000, 3200], isoMax: 10000, focalRange: [70, 400], metering: 'Multi', focusMode: 'AF-C',
+    focusArea: 'Tracking: zone', subjectDetection: 'Human', driveMode: 'High continuous', whiteBalance: 'Daylight / AWB', fileFormat: 'Compressed RAW',
+    flash: 'Off', stabilization: 'Panning / mode 2', special: ['Use back-button focus if preferred', 'Pre-position at predictable action points', 'Check buffer and card speed'],
+  },
+  {
+    id: 'indoor-sports', name: 'Indoor sport', category: 'action', icon: '↯',
+    shortDescription: 'Fast action under dim, flickering artificial light.', defaultLight: 'indoor', defaultMotion: 'fast', defaultIntent: 'freeze',
+    aperture: [1.8, 3.2], shutterDenominator: [800, 2000], isoMax: 25600, focalRange: [50, 200], metering: 'Multi', focusMode: 'AF-C',
+    focusArea: 'Tracking: zone', subjectDetection: 'Human', driveMode: 'High continuous', whiteBalance: 'Custom WB or Kelvin', fileFormat: 'Compressed RAW',
+    flash: 'Usually prohibited', stabilization: 'On', special: ['Enable anti-flicker', 'Prefer mechanical shutter under banding LEDs', 'Test white balance before play begins'],
+  },
+  {
+    id: 'panning-action', name: 'Panning action', category: 'creative', icon: '≋',
+    shortDescription: 'Keep the subject recognisable while streaking the background.', defaultLight: 'bright', defaultMotion: 'fast', defaultIntent: 'motion',
+    aperture: [8, 16], shutterDenominator: [30, 125], isoMax: 1600, focalRange: [50, 300], metering: 'Multi', focusMode: 'AF-C',
+    focusArea: 'Tracking: zone', subjectDetection: 'Vehicle/human/animal', driveMode: 'Medium continuous', whiteBalance: 'Daylight', fileFormat: 'RAW',
+    flash: 'Off', stabilization: 'Panning / mode 2', special: ['Rotate from the torso', 'Start tracking before releasing', 'Continue the movement after the frame'],
+  },
+  {
+    id: 'landscape-day', name: 'Daylight landscape', category: 'nature', icon: '△',
+    shortDescription: 'Maximum detail, controlled highlights, useful depth.', defaultLight: 'bright', defaultMotion: 'still', defaultIntent: 'balanced',
+    aperture: [7.1, 11], shutterDenominator: [30, 250], isoMax: 800, focalRange: [14, 100], metering: 'Highlight-weighted', focusMode: 'AF-S or manual',
+    focusArea: 'Spot S', subjectDetection: 'Off', driveMode: '2 s timer', whiteBalance: 'Daylight', fileFormat: 'Lossless compressed RAW', flash: 'Off',
+    stabilization: 'Off on tripod; on handheld', special: ['Use histogram and zebras', 'Focus near the hyperfocal distance', 'Bracket high-contrast scenes', 'Consider a polarizer'],
+  },
+  {
+    id: 'waterfall-long-exposure', name: 'Water & long exposure', category: 'creative', icon: '≈',
+    shortDescription: 'Deliberate motion in waterfalls, sea, or clouds.', defaultLight: 'overcast', defaultMotion: 'slow', defaultIntent: 'motion',
+    aperture: [8, 11], shutterDenominator: [1, 8], shutterSeconds: [0.5, 8], isoMax: 400, focalRange: [16, 70], metering: 'Multi', focusMode: 'AF-S then manual',
+    focusArea: 'Spot S', subjectDetection: 'Off', driveMode: '2 s timer / remote', whiteBalance: 'Daylight or cloudy', fileFormat: 'RAW', flash: 'Off',
+    stabilization: 'Off on tripod', special: ['Use an ND filter', 'Cover the viewfinder on long exposures', 'Enable long-exposure NR only when time allows'],
+  },
+  {
+    id: 'macro-static', name: 'Static macro', category: 'nature', icon: '✣',
+    shortDescription: 'Controlled depth and texture for flowers or objects.', defaultLight: 'bright', defaultMotion: 'still', defaultIntent: 'balanced',
+    aperture: [5.6, 11], shutterDenominator: [125, 500], isoMax: 3200, focalRange: [60, 200], metering: 'Spot or multi', focusMode: 'Manual / DMF',
+    focusArea: 'Magnified spot', subjectDetection: 'Off', driveMode: '2 s timer or focus bracket', whiteBalance: 'Custom / daylight', fileFormat: 'RAW',
+    flash: 'Diffused macro flash optional', stabilization: 'On handheld; off tripod', special: ['Use focus magnification', 'Consider focus stacking', 'Keep the sensor plane parallel to the subject'],
+  },
+  {
+    id: 'macro-insect', name: 'Insect macro', category: 'action', icon: '✦',
+    shortDescription: 'Enough shutter speed and depth for moving small subjects.', defaultLight: 'overcast', defaultMotion: 'fast', defaultIntent: 'freeze',
+    aperture: [8, 13], shutterDenominator: [500, 1600], isoMax: 12800, focalRange: [90, 200], metering: 'Multi', focusMode: 'AF-C or manual rocking',
+    focusArea: 'Spot S', subjectDetection: 'Insect if available', driveMode: 'Medium continuous', whiteBalance: 'Flash / daylight', fileFormat: 'RAW',
+    flash: 'Diffused flash, manual 1/16–1/4', stabilization: 'On', special: ['Stay near flash sync speed unless using HSS', 'Diffuse the flash close to the subject', 'Watch the background as carefully as the insect'],
+  },
+  {
+    id: 'street-day', name: 'Daytime street', category: 'travel', icon: '▥',
+    shortDescription: 'Fast, discreet reaction with generous depth of field.', defaultLight: 'bright', defaultMotion: 'slow', defaultIntent: 'balanced',
+    aperture: [5.6, 8], shutterDenominator: [250, 1000], isoMax: 3200, focalRange: [24, 50], metering: 'Multi', focusMode: 'AF-C or zone focus',
+    focusArea: 'Zone', subjectDetection: 'Human', driveMode: 'Low continuous', whiteBalance: 'AWB', fileFormat: 'RAW + JPEG/HEIF', flash: 'Off', stabilization: 'On',
+    special: ['Use Auto ISO with a firm minimum shutter', 'Choose mechanical shutter if distortion matters', 'Keep the camera ready rather than in the bag'],
+  },
+  {
+    id: 'street-night', name: 'Night street', category: 'low-light', icon: '◒',
+    shortDescription: 'Sharp candid frames among bright signs and deep shadows.', defaultLight: 'night', defaultMotion: 'slow', defaultIntent: 'balanced',
+    aperture: [1.4, 2.8], shutterDenominator: [125, 500], isoMax: 16000, focalRange: [24, 50], metering: 'Highlight-weighted', focusMode: 'AF-C',
+    focusArea: 'Tracking: zone', subjectDetection: 'Human', driveMode: 'Low continuous', whiteBalance: 'AWB ambience / 3200–4300 K', fileFormat: 'RAW', flash: 'Off or slow-sync creative',
+    stabilization: 'On', special: ['Protect neon highlights', 'Use mechanical shutter under LEDs', 'Accept grain before accepting motion blur'],
+  },
+  {
+    id: 'architecture-interior', name: 'Architecture & interior', category: 'commercial', icon: '▤',
+    shortDescription: 'Straight geometry, complete tonal range, accurate colour.', defaultLight: 'indoor', defaultMotion: 'still', defaultIntent: 'balanced',
+    aperture: [7.1, 11], shutterDenominator: [4, 125], isoMax: 800, focalRange: [14, 50], metering: 'Highlight-weighted', focusMode: 'Manual / AF-S', focusArea: 'Spot S',
+    subjectDetection: 'Off', driveMode: '2 s timer / bracket', whiteBalance: 'Custom grey card', fileFormat: 'RAW', flash: 'Off-camera lighting if permitted', stabilization: 'Off on tripod',
+    special: ['Use a level and correct perspective', 'Bracket ±2 EV for windows', 'Avoid the smallest apertures unless depth requires them'],
+  },
+  {
+    id: 'food-product', name: 'Food & product', category: 'commercial', icon: '◫',
+    shortDescription: 'Accurate colour, controlled reflections, deliberate depth.', defaultLight: 'indoor', defaultMotion: 'still', defaultIntent: 'balanced',
+    aperture: [5.6, 11], shutterDenominator: [60, 250], isoMax: 800, focalRange: [50, 120], metering: 'Multi', focusMode: 'Manual / AF-S', focusArea: 'Spot S',
+    subjectDetection: 'Off', driveMode: '2 s timer', whiteBalance: 'Custom grey card', fileFormat: 'RAW', flash: 'Manual off-camera / continuous light', stabilization: 'Off on tripod',
+    special: ['Use a colour reference', 'Flag reflections with black cards', 'Focus stack products when required'],
+  },
+  {
+    id: 'concert-stage', name: 'Concert & stage', category: 'low-light', icon: '✺',
+    shortDescription: 'Freeze performers without destroying dramatic light.', defaultLight: 'low', defaultMotion: 'fast', defaultIntent: 'freeze',
+    aperture: [1.8, 2.8], shutterDenominator: [320, 1000], isoMax: 25600, focalRange: [24, 200], metering: 'Highlight-weighted', focusMode: 'AF-C',
+    focusArea: 'Tracking: spot M', subjectDetection: 'Human eye', driveMode: 'Medium continuous', whiteBalance: 'AWB ambience', fileFormat: 'RAW', flash: 'Usually prohibited', stabilization: 'On',
+    special: ['Expose for faces in spotlights', 'Check LED banding and shutter type', 'Avoid clipping a single saturated colour channel'],
+  },
+  {
+    id: 'milky-way', name: 'Milky Way', category: 'low-light', icon: '✧',
+    shortDescription: 'Pinpoint stars and clean foreground detail.', defaultLight: 'night', defaultMotion: 'slow', defaultIntent: 'balanced',
+    aperture: [1.4, 2.8], shutterDenominator: [1, 15], shutterSeconds: [8, 20], isoMax: 6400, focalRange: [12, 35], metering: 'Manual exposure', focusMode: 'Manual', focusArea: 'Magnified live view',
+    subjectDetection: 'Off', driveMode: '2 s timer / interval', whiteBalance: '3800–4300 K', fileFormat: 'RAW', flash: 'Off', stabilization: 'Off on tripod',
+    special: ['Use the NPF rule rather than only the 500 rule', 'Focus on a bright star at magnified view', 'Capture dark frames separately if stacking'],
+  },
+  {
+    id: 'moon', name: 'Moon detail', category: 'nature', icon: '◑',
+    shortDescription: 'Protect lunar highlights and preserve surface texture.', defaultLight: 'night', defaultMotion: 'slow', defaultIntent: 'freeze',
+    aperture: [7.1, 11], shutterDenominator: [125, 500], isoMax: 1600, focalRange: [300, 1200], metering: 'Spot', focusMode: 'AF-S or manual', focusArea: 'Spot S',
+    subjectDetection: 'Off', driveMode: '2 s timer / short burst', whiteBalance: 'Daylight', fileFormat: 'RAW', flash: 'Off', stabilization: 'On handheld; off tripod',
+    special: ['The moon is sunlit—start near the Looney 11 rule', 'Expose for the moon, not the black sky', 'Use electronic front-curtain or delay to reduce vibration'],
+  },
+  {
+    id: 'fireworks', name: 'Fireworks', category: 'creative', icon: '✳',
+    shortDescription: 'Clean trails with controlled highlights and composition.', defaultLight: 'night', defaultMotion: 'fast', defaultIntent: 'motion',
+    aperture: [8, 13], shutterDenominator: [1, 4], shutterSeconds: [1, 5], isoMax: 400, focalRange: [24, 100], metering: 'Manual exposure', focusMode: 'Manual', focusArea: 'Pre-focus',
+    subjectDetection: 'Off', driveMode: 'Bulb / remote', whiteBalance: 'Daylight', fileFormat: 'RAW', flash: 'Off', stabilization: 'Off on tripod',
+    special: ['Use a tripod and remote release', 'Open just before the burst and close after trails form', 'Check highlights after the first sequence'],
+  },
+  {
+    id: 'snow-beach', name: 'Snow & beach', category: 'travel', icon: '◌',
+    shortDescription: 'Keep bright scenes bright without losing texture.', defaultLight: 'bright', defaultMotion: 'slow', defaultIntent: 'balanced',
+    aperture: [5.6, 11], shutterDenominator: [500, 2000], isoMax: 1600, focalRange: [24, 200], metering: 'Highlight-weighted', focusMode: 'AF-C', focusArea: 'Zone',
+    subjectDetection: 'Auto', driveMode: 'Single / low continuous', whiteBalance: 'Daylight', fileFormat: 'RAW + JPEG/HEIF', flash: 'Fill optional', stabilization: 'On',
+    special: ['Start around +0.7 to +1.7 EV for snow', 'Watch RGB highlights', 'Shield the camera from sand, spray, and condensation'],
+  },
+  {
+    id: 'cinematic-interview', name: 'Cinematic interview', category: 'video', icon: '▸',
+    shortDescription: 'Natural motion, consistent skin tone, clean dialogue.', defaultLight: 'indoor', defaultMotion: 'still', defaultIntent: 'balanced',
+    aperture: [2.8, 5.6], shutterDenominator: [48, 50], isoMax: 6400, focalRange: [35, 85], metering: 'Face priority / waveform', focusMode: 'AF-C with slow transition',
+    focusArea: 'Tracking: spot M', subjectDetection: 'Human eye', driveMode: 'Video', whiteBalance: 'Manual Kelvin / custom', fileFormat: '10-bit 4:2:2 if available', flash: 'Continuous soft key light',
+    stabilization: 'Tripod or standard IBIS', special: ['Set white balance manually', 'Record dual-system or monitored audio', 'Keep skin below clipping and check zebras'],
+    video: { frameRate: '24/25 fps', shutter: '1/48–1/50 (180°)', profile: 'Log for grading or a neutral baked-in profile', audio: '48 kHz, peaks around -12 dBFS' },
+  },
+  {
+    id: 'slow-motion-sports-video', name: 'Slow-motion action video', category: 'video', icon: '▷',
+    shortDescription: 'Crisp high-frame-rate footage with controllable motion.', defaultLight: 'bright', defaultMotion: 'fast', defaultIntent: 'freeze',
+    aperture: [2.8, 5.6], shutterDenominator: [200, 250], isoMax: 6400, focalRange: [24, 200], metering: 'Multi / waveform', focusMode: 'AF-C', focusArea: 'Tracking: zone',
+    subjectDetection: 'Match subject', driveMode: '100/120 fps', whiteBalance: 'Manual Kelvin', fileFormat: '10-bit 4:2:2 if available', flash: 'Continuous light only', stabilization: 'Active / gimbal',
+    special: ['Use enough light for the faster shutter', 'Check crop and overheating limits', 'Record normal-speed establishing shots too'],
+    video: { frameRate: '100/120 fps', shutter: '1/200–1/250 (180°)', profile: 'Matched across all cameras', audio: 'Capture separately at normal speed if needed' },
+  },
+];
+
+export function getScenario(id: string | string[] | undefined) {
+  const key = Array.isArray(id) ? id[0] : id;
+  return scenarios.find((scenario) => scenario.id === key) ?? scenarios[0];
+}

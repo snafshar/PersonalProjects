@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "FramePilot",
+    "slug": "framepilot",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/brand/framepilot-icon.png",
+    "scheme": "framepilot",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "icon": "./assets/brand/framepilot-icon.png",
+      "bundleIdentifier": "com.snafshar.framepilot",
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0B1012",
+        "foregroundImage": "./assets/brand/framepilot-foreground.png",
+        "monochromeImage": "./assets/brand/framepilot-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": true,
+      "package": "com.snafshar.framepilot"
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/brand/framepilot-icon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0B1012",
+          "image": "./assets/brand/framepilot-splash.png",
+          "imageWidth": 132
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}

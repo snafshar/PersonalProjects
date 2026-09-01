@@ -1,6 +1,14 @@
 # Personal Projects
 
-I build practical applications that turn personal interests and everyday workflows into opportunities to practise product design, clean state management, validation, and useful feedback.
+I build practical applications that turn personal interests and everyday workflows into opportunities to practise product design, state management, validation, and useful feedback.
+
+## Featured mobile application: FramePilot
+
+**[View the iOS/Android source](./mobile/framepilot)**
+
+FramePilot is my cross-platform photography field assistant. Its protected dashboard converts 26 portrait, wildlife, sport, landscape, macro, astrophotography, street, event, commercial, creative, and video situations into complete camera recommendations.
+
+I designed a TypeScript engine that adapts aperture, shutter, ISO, autofocus, drive, metering, colour, file format, flash, stabilisation, filters, safeguards, and field checks to subject motion, light, creative intent, lens limits, sensor crop, focal length, support, and final output. The project includes Supabase authentication, row-level-secured cloud saves, a reviewer demo mode, unit tests, and production Expo configuration for iOS and Android.
 
 ## Featured website: Exposure Lab
 

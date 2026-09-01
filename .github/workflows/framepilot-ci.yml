@@ -1,0 +1,26 @@
+name: FramePilot CI
+
+on:
+  push:
+    paths:
+      - 'mobile/framepilot/**'
+      - '.github/workflows/framepilot-ci.yml'
+  pull_request:
+    paths:
+      - 'mobile/framepilot/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile/framepilot
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: mobile/framepilot/package-lock.json
+      - run: npm ci
+      - run: npm run validate
