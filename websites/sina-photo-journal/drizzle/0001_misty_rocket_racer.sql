@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `orders_active_purchase` ON `orders` (`user_id`,`photo_id`) WHERE "orders"."status" IN ('pending','paid');

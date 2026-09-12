@@ -1,0 +1,3 @@
+import {db,bucket,isOwner,fail,HttpError} from '@/lib/server';
+import {getChatGPTUser} from '@/app/chatgpt-auth';
+export async function GET(_request:Request,{params}:{params:Promise<{id:string}>}){try{const {id}=await params;const row=await db().prepare('SELECT preview_key,published FROM photos WHERE id=?').bind(id).first<{preview_key:string;published:number}>();if(!row||(!row.published&&!isOwner(await getChatGPTUser())))throw new HttpError(404,'Photo not found.');const object=await bucket().get(row.preview_key);if(!object)throw new HttpError(404,'Preview not found.');return new Response(object.body,{headers:{'Content-Type':'image/jpeg','Cache-Control':'no-cache','X-Content-Type-Options':'nosniff','ETag':object.httpEtag}})}catch(e){return fail(e)}}

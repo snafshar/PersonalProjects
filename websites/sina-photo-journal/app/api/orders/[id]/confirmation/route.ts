@@ -1,0 +1,3 @@
+import {identity,db,HttpError,fail} from '@/lib/server';
+import {orderConfirmation,type Order} from '@/lib/payments';
+export async function GET(_request:Request,{params}:{params:Promise<{id:string}>}){try{const u=await identity(),{id}=await params;const o=await db().prepare('SELECT * FROM orders WHERE id=? AND user_id=?').bind(id,u.userId).first<Order>();if(!o||o.status!=='paid')throw new HttpError(404,'Paid order not found.');return new Response(orderConfirmation(o),{headers:{'Content-Type':'text/plain; charset=utf-8','Content-Disposition':'attachment; filename="photo-order-'+o.id+'.txt"','Cache-Control':'private, no-store'}})}catch(e){return fail(e)}}
