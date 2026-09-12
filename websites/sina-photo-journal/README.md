@@ -57,6 +57,8 @@ The Sites source repository and this GitHub copy contain source and sample asset
 
 ## Security boundary
 
+An optional credential-checking pre-commit hook is included. In a standalone checkout, enable it with `git config core.hooksPath .githooks`. In a monorepo, integrate `node scripts/check-secrets.mjs` into the existing repository hook from this project directory. It scans staged text and reports filenames only.
+
 The app trusts identity headers only because production traffic comes through the Sites authentication dispatcher, which owns authentication. **Do not expose this Worker directly on an unrestricted workers.dev origin or another proxy that passes user-supplied identity headers.** A move to independent hosting requires a verified authentication gateway or replacing the identity adapter with a validated OAuth/session implementation. Changing hosting alone is insufficient.
 
 Owner access uses a configured site user ID when available, otherwise the verified identity-provider email configured in secret hosting settings. There is no first-visitor admin assignment. Each private API checks identity server-side; browser visibility is not authorization.

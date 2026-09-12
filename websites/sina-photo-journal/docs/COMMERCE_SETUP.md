@@ -9,7 +9,7 @@ Sales are currently disabled. Connecting Stripe in ChatGPT does not automaticall
 | SITE_URL | Exact HTTPS public origin used in checkout links and canonical metadata |
 | OWNER_USER_ID | Preferred stable site-specific owner identity |
 | OWNER_EMAIL | Fallback verified identity-provider email; ignored when owner ID is configured |
-| STRIPE_SECRET_KEY | Secret Stripe API key for the intended test/live account |
+| STRIPE_SECRET_KEY | Restricted Stripe API key (rk_ prefix) with only the required Checkout, product/price and read permissions for the intended test/live account |
 | STRIPE_WEBHOOK_SECRET | Secret signing key for /api/stripe/webhook |
 | RESEND_API_KEY | Secret transactional email key |
 | RECEIPT_FROM_EMAIL | Verified sender, e.g. a mailbox on a domain you control |
@@ -28,7 +28,7 @@ Never invent seller/tax details or change the review flags just to hide readines
 ## Provider configuration
 
 1. Complete the seller account identity and payout onboarding directly with the payment provider.
-2. Set the actual tax registrations, prices and inclusive-tax treatment. The code enables Stripe automatic tax, collects billing addresses and tax IDs, and disables adaptive currency conversion so the charged currency/amount can be verified.
+2. Verify that Tax Settings has a head-office address and active status, and confirm the applicable active tax registrations in Stripe before opening sales. Automatic tax collects no tax in a jurisdiction without an active registration; enabling the parameter alone does not establish compliance. Set the actual tax registrations, prices and inclusive-tax treatment. The code enables Stripe automatic tax, collects billing addresses and tax IDs, and disables adaptive currency conversion so the charged currency/amount can be verified.
 3. Register the HTTPS webhook at SITE_URL/api/stripe/webhook. Subscribe to checkout.session.completed, checkout.session.async_payment_succeeded, checkout.session.async_payment_failed, checkout.session.expired, charge.refunded and charge.dispute.created. Use the matching account mode and signing secret.
 4. Configure a verified transactional email sender and reply-to support address. The order email includes seller details, total, original licence snapshot and the recorded withdrawal acknowledgement. Downloads wait until the confirmation service accepts that email.
 5. Upload only photographs you can publish and license. Confirm model/property/artwork permissions where relevant. RAW/HEIC/TIFF are not supported by the current upload form; JPEG, PNG and WebP are supported.
@@ -44,3 +44,5 @@ Never invent seller/tax details or change the review flags just to hide readines
 - Full refunds and disputes disable downloads. Partial refunds and dispute resolution may require operator review.
 - Users can report faulty content regardless of withdrawal status. Refund requests do not automatically move money; the seller must assess and issue appropriate refunds through the payment provider.
 - The current gateway uses ChatGPT identity. Collector email/password accounts independent of ChatGPT require an additional identity integration.
+
+The REST integration pins Stripe API version 2026-07-29.dahlia and includes a stable integration identifier. Test the minimum restricted-key permissions in the intended account; do not use a broad live key as a shortcut. Store the key and webhook signing secret as secret hosted settings. Never paste them into messages or source.
