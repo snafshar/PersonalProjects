@@ -7,7 +7,10 @@ Website: https://sina-photo-journal.afsharsn.chatgpt.site
 ## What works
 
 - Server-rendered photographic journal, permanent photo pages, captions, alt text and image metadata.
-- Photographer-only studio: JPEG/PNG/WebP uploads up to 40 MB, publish/draft/archive controls, caption and price editing.
+- Owner-only dashboard with eight sections: overview, posts and shop, new post, sales, customers, custom orders, support and shop readiness.
+- JPEG/PNG/WebP uploads up to 40 MB, full post metadata editing, bulk publication and archiving, private original downloads and confirmed deletion of unused drafts. Photos with any order records are retained.
+- Paginated and searchable post/customer/order lists, date and status filters, historical order details, payment reconciliation, receipt retries and sales CSV export (up to 5,000 filtered records).
+- Real local photo editing with 24 distinct presets, adjustable strength, 12 image controls, before/after comparison, undo/redo, reusable settings files and JPEG/PNG/WebP downloads.
 - Private R2 originals and separate, watermarked JPEG web previews. The browser re-encodes previews, stripping original EXIF; the downloadable original preserves its uploaded bytes.
 - Custom-order briefs, budget and deadline fields, private customer/photographer conversations, estimates, enquiry status tracking and owner management.
 - ChatGPT sign-in/sign-out, collection registration, private dashboard, favourites, and durable saved setups.
@@ -26,11 +29,20 @@ Authentication uses ChatGPT accounts. This is not an independent email/password 
 
 ## Use the site
 
-1. Sign in using the owning ChatGPT account. Open **Studio** to publish.
-2. Choose an original, add a title, caption and meaningful alt text. Confirm applicable rights.
-3. Leave the price blank for a journal-only photograph, or set a price of at least €1 for a future sale item.
-4. Save a draft or publish. Archiving removes the listing from the public journal and preserves originals required by previous purchases.
-5. Collectors use **My collection** for originals, favourites, settings, account exports and support.
+1. Sign in using the owning ChatGPT account. Open **Studio → New post**.
+2. Choose an original, add a title, caption, meaningful alt text and optional camera details. Confirm applicable rights.
+3. Turn on **Offer the original for sale** and enter a price of €1–€5,000, or leave the toggle off for a journal-only photograph.
+4. Save a private draft or turn on journal visibility to publish. **Posts & shop** supports editing, search, bulk publication and archiving.
+5. Review **Sales & orders**, **Customers**, **Custom orders** and **Customer support** for real account activity. **Shop readiness** lists missing seller and payment settings.
+6. Collectors use **My collection** for originals, favourites, saved shooting setups, account exports and support.
+
+## Photo editing
+
+Open **Photo Lab → Photo editor** and choose a local JPEG, PNG or WebP. Everyday, Portrait, Landscape, Film, Monochrome and Low light each contain four presets. They use distinct pixel transformations, with linear-light exposure, tone adjustments, white balance, restrained vibrance, edge-aware smoothing, sharpening, split toning, grain and vignette. Preview thumbnails and downloads use the same processing engine in a Web Worker.
+
+Choose a preset, adjust its strength and refine the twelve controls. Compare with the untouched source, undo/redo changes, or save/import a validated JSON settings file. Your editor image and edits remain available while switching Photo Lab tabs. Opening another photograph or leaving/reloading the page clears local edits. Images are processed in the browser and are not uploaded by the editor.
+
+Input limits: 40 MB, 80 megapixels and 20,000 pixels on the longest edge. Export at original size up to 67 megapixels or choose a smaller long edge. Tiled processing bounds working memory, although the browser still needs memory for the decoded source and output canvas. Exports are 8-bit sRGB and remove embedded EXIF; PNG preserves transparency. No upscaling or RAW development is provided. Filters cannot recover lost focus, clipped detail or change the true capture resolution. Download the finished photograph before uploading it as a post original.
 
 ## Development and verification
 
