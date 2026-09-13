@@ -7,7 +7,7 @@ const {Miniflare,Log,LogLevel}=createRequire(require.resolve('wrangler/package.j
 const base='https://sina-photo-journal.afsharsn.chatgpt.site';
 const moduleFiles=(await readdir('dist/server',{recursive:true})).filter(p=>p.endsWith('.js')||p.endsWith('.mjs'));
 const modules=[{type:'ESModule',path:resolve('dist/server/index.js')},...moduleFiles.filter(p=>p!=='index.js').map(p=>({type:'ESModule',path:resolve('dist/server',p)}))];
-const mf=new Miniflare({modules,modulesRoot:resolve('dist/server'),compatibilityDate:'2026-05-15',compatibilityFlags:['nodejs_compat'],d1Databases:['DB'],r2Buckets:['BUCKET'],bindings:{SITE_URL:base,OWNER_USER_ID:'test-owner',COMMERCE_ENABLED:'false'},log:new Log(LogLevel.ERROR)});
+const mf=new Miniflare({modules,modulesRoot:resolve('dist/server'),compatibilityDate:'2026-05-15',compatibilityFlags:['nodejs_compat'],d1Databases:['DB'],r2Buckets:['BUCKET'],bindings:{SITE_URL:base,OWNER_USER_ID:'test-owner',COMMERCE_ENABLED:'false'},assets:{directory:resolve('dist/client'),routerConfig:{has_user_worker:true}},log:new Log(LogLevel.ERROR)});
 let checks=0;
 const headers=(user='buyer-a',sameOrigin=true)=>({'oai-authenticated-user-id':user,'oai-authenticated-user-email':user+'@example.test',Origin:sameOrigin?base:'https://attacker.example','Content-Type':'application/json'});
 async function req(path,options={}){if(options.body instanceof FormData){const encoded=new Request(base+path,options);options={...options,headers:encoded.headers,body:new Uint8Array(await encoded.arrayBuffer())}}return mf.dispatchFetch(base+path,options)}
@@ -16,6 +16,21 @@ try{
 const db=await mf.getD1Database('DB');
 for(const name of (await readdir('drizzle')).filter(n=>n.endsWith('.sql')).sort()){const sql=await readFile('drizzle/'+name,'utf8');for(const statement of sql.split('--> statement-breakpoint').filter(s=>s.trim()))await db.prepare(statement).run()}
 await check('public journal renders with local sample images',async()=>{const r=await req('/');assert.equal(r.status,200);const h=await r.text();assert.match(h,/Look a little/);assert.match(h,/AI-generated/);assert.match(h,/images\/alpine.jpg/);assert.ok(!h.includes('no such table'))});
+await check('production HTML references available browser assets',async()=>{const html=await(await req('/')).text();const sources=[...html.matchAll(/(?:src|href)="([^" ]+\.(?:js|css))"/g)].map(m=>m[1]);assert.ok(sources.length>0);for(const source of sources){const asset=await req(source);assert.equal(asset.status,200,source);assert.match(asset.headers.get('content-type'),source.endsWith('.js')?/javascript/:/css/,source)}console.log('Asset references checked:',sources.length)});
+await check('every public homepage link opens a complete HTML page',async()=>{
+  const html=await(await req('/')).text();
+  const paths=[...new Set([...html.matchAll(/<a\b[^>]*href="([^"#]+)"/g)].map(m=>m[1]).filter(p=>p.startsWith('/')))];
+  assert.ok(paths.includes('/lab')&&paths.includes('/account')&&paths.includes('/custom-orders'));
+  for(const path of paths){
+    const response=await req(path.replaceAll('&amp;','&'));
+    assert.equal(response.status,200,path);
+    assert.match(response.headers.get('content-type'),/text\/html/,path);
+    const body=await response.text();
+    assert.match(body,/<main\b/,path);
+    assert.ok(!body.includes('The page could not be loaded.'),path);
+  }
+  console.log('Homepage destinations checked:',paths.length);
+});
 await check('Photo Lab renders and metadata is present',async()=>{const r=await req('/lab');assert.equal(r.status,200);const h=await r.text();assert.match(h,/The Photo/);assert.match(h,/canonical/);assert.match(h,/Daylight portrait/)});
 await check('SEO endpoints respond with actual routes',async()=>{const robots=await req('/robots.txt');assert.equal(robots.status,200);assert.match(await robots.text(),/sitemap.xml/);const sitemap=await req('/sitemap.xml');assert.equal(sitemap.status,200);assert.match(await sitemap.text(),/\/lab/);assert.equal((await req('/does-not-exist')).status,404)});
 await check('anonymous users cannot access account data or studio APIs',async()=>{assert.equal((await req('/api/presets')).status,401);assert.equal((await req('/api/studio/photos')).status,401);assert.equal((await req('/api/account/export')).status,401)});

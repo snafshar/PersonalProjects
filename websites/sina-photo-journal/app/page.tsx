@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { ArrowUpRight, Aperture } from 'lucide-react';
 import { publicPhotos } from '@/lib/server';
 import { demoPhotos } from '@/lib/content';
@@ -13,7 +12,7 @@ export default async function Home() {
     {!photos.length&&<p className="sample-note">Sample gallery · AI-generated examples, not photographs by Sina. Sina’s photographs will appear here when published.</p>}
     <section id="journal" aria-label="Latest photographs" className="editorial-grid">{shown.slice(0,3).map((p,i)=><PhotoCard key={p.id} photo={p} index={i} featured={i===0}/>)}</section>
     {shown.length>3&&<section aria-label="More photographs" className="photo-grid">{shown.slice(3).map((p,i)=><PhotoCard key={p.id} photo={p} index={i+3}/>)}</section>}
-    <section className="lab-banner"><div className="lab-symbol"><Aperture strokeWidth={1} size={72}/></div><div><p className="eyebrow">Behind the photograph</p><h2>Make your next frame <em>intentional.</em></h2><p>Explore 26 shooting scenarios and the exposure triangle in Photo Lab.</p></div><Link className="button light" href="/lab">Enter Photo Lab <ArrowUpRight size={18}/></Link></section>
-    <section className="section-heading" style={{marginBottom:65,gap:30,flexWrap:'wrap'}}><div><p className="eyebrow">Have something in mind?</p><h2 style={{margin:'10px 0'}}>Let’s make a frame <em>of your own.</em></h2><p className="muted">A personal commission, an image edit or a licence shaped around your idea.</p></div><Link className="button secondary" href="/custom-orders">Explore custom orders <ArrowUpRight size={18}/></Link></section>
+    <section className="lab-banner"><div className="lab-symbol"><Aperture strokeWidth={1} size={72}/></div><div><p className="eyebrow">Behind the photograph</p><h2>Make your next frame <em>intentional.</em></h2><p>Explore 26 shooting scenarios and the exposure triangle in Photo Lab.</p></div><a className="button light" href="/lab">Enter Photo Lab <ArrowUpRight size={18}/></a></section>
+    <section className="section-heading" style={{marginBottom:65,gap:30,flexWrap:'wrap'}}><div><p className="eyebrow">Have something in mind?</p><h2 style={{margin:'10px 0'}}>Let’s make a frame <em>of your own.</em></h2><p className="muted">A personal commission, an image edit or a licence shaped around your idea.</p></div><a className="button secondary" href="/custom-orders">Explore custom orders <ArrowUpRight size={18}/></a></section>
   </main>;
 }

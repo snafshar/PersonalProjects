@@ -54,7 +54,9 @@ function isoPlan(aperture: number, seconds: number, scenario: Scenario, context:
   const outputCap = context.output === 'large-print' ? 6400 : context.output === 'social' ? 25600 : 12800;
   const cap = Math.min(scenario.isoMax, outputCap);
   const estimate = Math.min(cap, Math.max(100, nearest(standardIso, raw)));
-  return { estimate, cap, display: scenario.shutterSeconds ? `ISO ${estimate}` : `Auto ISO 100–${cap.toLocaleString()} (target ≈ ${estimate.toLocaleString()})` };
+  // Match the site's English language on both the server and the browser.
+  // The device's default locale can otherwise break React hydration.
+  return { estimate, cap, display: scenario.shutterSeconds ? `ISO ${estimate}` : `Auto ISO 100–${cap.toLocaleString('en-GB')} (target ≈ ${estimate.toLocaleString('en-GB')})` };
 }
 
 function exposureCompensation(scenario: Scenario, context: ShootingContext) {
@@ -149,7 +151,7 @@ export function generateRecommendation(scenario: Scenario, context: ShootingCont
     ...(mechanicalPreferred ? ['Test artificial light for banding before the important moment.'] : []),
     ...(context.motion === 'fast' || context.motion === 'erratic' ? ['Electronic shutter can bend fast subjects; verify rolling-shutter performance.'] : []),
     ...(aperture.high > 11 ? ['Very small apertures increase diffraction; stop down only for necessary depth.'] : []),
-    ...(iso.estimate >= iso.cap ? [`The ISO estimate reaches the ${iso.cap.toLocaleString()} ceiling—add light, open the lens, or accept more motion.`] : []),
+    ...(iso.estimate >= iso.cap ? [`The ISO estimate reaches the ${iso.cap.toLocaleString('en-GB')} ceiling—add light, open the lens, or accept more motion.`] : []),
     ...(context.handheld && scenario.shutterSeconds ? ['This creative exposure normally needs a tripod or stable support.'] : []),
   ];
 
@@ -165,4 +167,3 @@ export function calculateExposureValue(aperture: number, shutterSeconds: number,
   const ev100 = Math.log2((aperture ** 2) / shutterSeconds);
   return { ev100, sceneEv: ev100 - Math.log2(iso / 100) };
 }
-

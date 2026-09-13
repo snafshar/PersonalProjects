@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import {ArrowUpRight,Camera,Image,MessagesSquare} from 'lucide-react';
 import {getChatGPTUser,chatGPTSignInPath} from '@/app/chatgpt-auth';
 import {CustomOrderForm} from '@/components/custom-order-form';

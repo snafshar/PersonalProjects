@@ -2,6 +2,7 @@ import {customInput} from '../lib/custom-orders.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {webcrypto} from 'node:crypto';
+import {execFileSync} from 'node:child_process';
 import {detectedImage,handheldStable,photoInput,presetInput,safeFilename} from '../lib/validation.ts';
 import {generateRecommendation,defaultGear,defaultContext,calculateExposureValue} from '../lib/recommendation-engine.ts';
 import {scenarios} from '../lib/scenarios.ts';
@@ -10,6 +11,17 @@ import type {Order,StripeSession} from '../lib/payments.ts';
 test('exposure matches Sunny 16 and a one-stop ISO change',()=>{const a=calculateExposureValue(16,1/125,100),b=calculateExposureValue(16,1/125,200);assert.ok(Math.abs(a.sceneEv-15)<.05);assert.equal(a.sceneEv-b.sceneEv,1)});
 test('handheld check rejects a long telephoto exposure and accepts a fast one',()=>{assert.equal(handheldStable(1/30,200),false);assert.equal(handheldStable(1/500,200),true);assert.equal(handheldStable(1/200,200),true);assert.equal(handheldStable(1/200,200,1.5),false);assert.equal(handheldStable(1/100,200,1,1),true)});
 test('all 26 recovered shooting scenarios generate finite, complete settings',()=>{assert.equal(scenarios.length,26);for(const s of scenarios){for(const light of ['bright','night'] as const){const r=generateRecommendation(s,{...defaultContext(s),light},{...defaultGear,focalLength:600,maxAperture:5.6});assert.ok(Number.isFinite(r.isoEstimate));assert.ok(r.groups.length>=6);assert.ok(!r.headline.includes('NaN'));assert.ok(r.checklist.length>=3)}}});
+test('rendered shooting advice is identical across server and browser locales',()=>{
+  const script=`
+    import {generateRecommendation,defaultContext,defaultGear} from './lib/recommendation-engine.ts';
+    import {scenarios} from './lib/scenarios.ts';
+    console.log(JSON.stringify(scenarios.flatMap(s=>['bright','night'].map(light=>{
+      const {generatedAt,...rendered}=generateRecommendation(s,{...defaultContext(s),light},defaultGear);
+      return rendered;
+    }))));`;
+  const render=(locale:string)=>execFileSync(process.execPath,['--experimental-strip-types','--input-type=module','-e',script],{cwd:new URL('..',import.meta.url),env:{...process.env,LANG:locale,LC_ALL:locale},encoding:'utf8'});
+  assert.equal(render('de_DE.UTF-8'),render('en_US.UTF-8'));
+});
 test('lens outside a scenario range never produces an inverted recommended interval',()=>{const r=generateRecommendation(scenarios[0],defaultContext(scenarios[0]),{...defaultGear,focalLength:600});const focal=r.groups.flatMap(g=>g.parameters).find(p=>p.label==='Focal length');assert.match(focal!.value,/50–135 mm/);assert.match(focal!.value,/600 mm/)});
 test('flash recommendation respects unavailable gear',()=>{const r=generateRecommendation(scenarios[0],defaultContext(scenarios[0]),{...defaultGear,flashAvailable:false});assert.match(r.groups.flatMap(g=>g.parameters).find(p=>p.label==='Flash approach')!.value,/not selected/)});
 test('upload type sniffs content rather than filename or claimed MIME',()=>{assert.equal(detectedImage(new Uint8Array([255,216,255,0])),'image/jpeg');assert.equal(detectedImage(new TextEncoder().encode('<svg onload=evil>')),null);assert.equal(detectedImage(new Uint8Array([137,80,78,71,13,10,26,10])),'image/png');assert.equal(safeFilename('../../photo\r\nX-Test: evil.jpg'),'.._.._photo__X-Test__evil.jpg')});
