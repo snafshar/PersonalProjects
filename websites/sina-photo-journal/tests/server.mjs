@@ -31,7 +31,7 @@ await check('every public homepage link opens a complete HTML page',async()=>{
   }
   console.log('Homepage destinations checked:',paths.length);
 });
-await check('Photo Lab renders and metadata is present',async()=>{const r=await req('/lab');assert.equal(r.status,200);const h=await r.text();assert.match(h,/The Photo/);assert.match(h,/canonical/);assert.match(h,/Daylight portrait/)});
+await check('Photo Lab renders and metadata is present',async()=>{const r=await req('/lab');assert.equal(r.status,200);const h=await r.text();assert.match(h,/The Photo/);assert.match(h,/canonical/);assert.match(h,/24 presets/);assert.match(h,/Silver monochrome/);assert.match(h,/Shooting planner/)});
 await check('SEO endpoints respond with actual routes',async()=>{const robots=await req('/robots.txt');assert.equal(robots.status,200);assert.match(await robots.text(),/sitemap.xml/);const sitemap=await req('/sitemap.xml');assert.equal(sitemap.status,200);assert.match(await sitemap.text(),/\/lab/);assert.equal((await req('/does-not-exist')).status,404)});
 await check('anonymous users cannot access account data or studio APIs',async()=>{assert.equal((await req('/api/presets')).status,401);assert.equal((await req('/api/studio/photos')).status,401);assert.equal((await req('/api/account/export')).status,401)});
 await check('collectors cannot publish photographs',async()=>{assert.equal((await req('/api/studio/photos',{headers:headers()})).status,403)});
@@ -57,6 +57,59 @@ await check('custom briefs validate terms and future dates before saving',async(
 await check('custom briefs and conversations are private to customer and photographer',async()=>{assert.equal((await(await req('/api/custom-orders',{headers:headers('buyer-b')})).json()).orders.length,0);assert.equal((await req('/api/custom-orders?id='+customId,{headers:headers('buyer-b')})).status,404);const r=await req('/api/custom-orders?id='+customId,{headers:headers('test-owner')});assert.equal(r.status,200);customVersion=(await r.json()).order.updated_at;assert.equal((await req('/api/custom-orders',{method:'PATCH',headers:headers('buyer-b'),body:JSON.stringify({id:customId,action:'message',body:'A forged private reply'})})).status,404)});
 await check('only photographer can quote and stale proposals cannot be accepted',async()=>{const proposal={id:customId,updated_at:customVersion,status:'quoted',quote_cents:20000,proposal:'Three edited portraits with personal-use rights, date and final terms to be agreed.'};assert.equal((await req('/api/custom-orders',{method:'PATCH',headers:headers(),body:JSON.stringify(proposal)})).status,403);assert.equal((await req('/api/custom-orders',{method:'PATCH',headers:headers('test-owner'),body:JSON.stringify(proposal)})).status,200);assert.equal((await req('/api/custom-orders',{method:'PATCH',headers:headers(),body:JSON.stringify({id:customId,updated_at:customVersion,action:'interest'})})).status,409);customVersion=(await(await req('/api/custom-orders?id='+customId,{headers:headers()})).json()).order.updated_at;assert.equal((await req('/api/custom-orders',{method:'PATCH',headers:headers(),body:JSON.stringify({id:customId,updated_at:customVersion,action:'interest'})})).status,200)});
 await check('private replies record server-selected authors and are included in export',async()=>{for(const user of ['buyer-a','test-owner'])assert.equal((await req('/api/custom-orders',{method:'PATCH',headers:headers(user),body:JSON.stringify({id:customId,action:'message',body:'Let us discuss the available dates.',author_role:'photographer'})})).status,200);const r=await(await req('/api/custom-orders?id='+customId,{headers:headers()})).json();assert.equal(r.messages[0].author_role,'customer');assert.equal(r.messages[1].author_role,'photographer');const exported=await(await req('/api/account/export',{headers:headers()})).json();assert.equal(exported.custom_orders.results.length,1);assert.equal(exported.custom_messages.results.length,2)});
+await check('admin data and stored originals are restricted to the owner',async()=>{
+ for(const path of ['/api/studio/manage?view=overview','/api/studio/manage?view=sales&export=csv','/api/studio/original/'+photoId]){
+  assert.equal((await req(path)).status,401);assert.equal((await req(path,{headers:headers()})).status,403);
+  const r=await req(path,{headers:headers('test-owner')});assert.equal(r.status,200);assert.match(r.headers.get('cache-control'),/no-store/);
+ }
+ assert.equal((await(await req('/api/studio/original/'+photoId,{headers:headers('test-owner')})).arrayBuffer()).byteLength,bytes.length);
+ assert.equal((await req('/api/studio/manage',{method:'POST',headers:headers(),body:JSON.stringify({action:'archive',ids:[photoId]})})).status,403);
+ assert.equal((await req('/api/studio/manage',{method:'POST',headers:headers('test-owner',false),body:JSON.stringify({action:'archive',ids:[photoId]})})).status,403);
+});
+await check('all eight admin sections render and real dashboard queries execute',async()=>{
+ for(const section of ['overview','posts','create','sales','customers','custom','support','settings']){
+  const r=await req('/studio?section='+section,{headers:headers('test-owner')});assert.equal(r.status,200,section);const html=await r.text();assert.match(html,/Admin access/,section);assert.ok(!html.includes('The page could not be loaded.'),section);
+  if(section!=='create'){const response=await req('/api/studio/manage?view='+section,{headers:headers('test-owner')});assert.equal(response.status,200,section);const data=await response.json();assert.ok(Array.isArray(data.rows));if(section==='overview'){assert.equal(data.stats.photos,1);assert.equal(data.stats.customers,1);assert.equal(data.stats.gross_paid,0);assert.equal(data.stats.open_requests,1);assert.equal(data.stats.active_custom,1);assert.equal(data.enabled,false)}if(section==='settings'){assert.ok(data.missing.length);assert.ok(!('STRIPE_SECRET_KEY' in data))}}
+ }
+ assert.equal((await req('/studio',{headers:headers()})).status,404);
+});
+await check('full post edits preserve purchased file, price and licence snapshots',async()=>{
+ const metadata={id:photoId,title:'Updated lake',caption:'The revised story.',alt:'Mountains and a still lake',category:'Landscape',location:'Test location',camera:'Test camera',lens:'Test lens',settings:'f/8 · ISO 100',price_cents:2300};
+ assert.equal((await req('/api/studio/photos',{method:'PATCH',headers:headers('test-owner'),body:JSON.stringify(metadata)})).status,200);
+ const post=await db.prepare('SELECT * FROM photos WHERE id=?').bind(photoId).first();for(const key of Object.keys(metadata))assert.equal(post[key],metadata[key],key);
+ const order=await db.prepare('SELECT * FROM orders WHERE id=?').bind(orderId).first();assert.equal(order.amount,1500);assert.equal(order.photo_title,'Test lake');assert.equal(order.license_text,'Personal use');assert.equal(post.original_key,'originals/'+photoId);
+});
+await check('bulk visibility is effective and order-backed photos cannot be deleted',async()=>{
+ const manage=(action,ids)=>req('/api/studio/manage',{method:'POST',headers:headers('test-owner'),body:JSON.stringify({action,ids})});
+ const remove=()=>req('/api/studio/manage',{method:'DELETE',headers:headers('test-owner'),body:JSON.stringify({id:photoId,confirm:'DELETE'})});
+ assert.equal((await remove()).status,409);assert.equal((await manage('archive',[photoId])).status,200);assert.equal((await req('/api/preview/'+photoId)).status,404);
+ assert.equal((await remove()).status,409);assert.ok(await db.prepare('SELECT id FROM photos WHERE id=?').bind(photoId).first());assert.ok(await(await mf.getR2Bucket('BUCKET')).get('originals/'+photoId));
+ assert.equal((await manage('publish',[photoId])).status,200);assert.equal((await req('/api/preview/'+photoId)).status,200);
+ assert.equal((await manage('archive',[photoId,photoId])).status,400);assert.equal((await manage('archive',[photoId,'not-a-photo'])).status,404);assert.equal((await req('/api/preview/'+photoId)).status,200);
+});
+await check('confirmed deletion of an unused draft removes its files and bookmarks',async()=>{
+ const data=new FormData();data.set('original',new Blob([bytes],{type:'image/jpeg'}),'unused.jpg');data.set('preview',new Blob([bytes],{type:'image/jpeg'}),'preview.jpg');data.set('metadata',JSON.stringify({title:'Unused draft',caption:'A draft to remove.',alt:'A sample test photograph',category:'Landscape',price_cents:0,published:0,width:1536,height:1024,rights:true}));const h=headers('test-owner');delete h['Content-Type'];const upload=await req('/api/studio/photos',{method:'POST',headers:h,body:data});assert.equal(upload.status,201);const id=(await upload.json()).id;
+ await db.prepare('INSERT INTO bookmarks (id,user_id,photo_id,created_at) VALUES (?,?,?,?)').bind('unused-bookmark','buyer-a',id,now).run();
+ const remove=(confirm,user='test-owner')=>req('/api/studio/manage',{method:'DELETE',headers:headers(user),body:JSON.stringify({id,confirm})});assert.equal((await remove('DELETE','buyer-a')).status,403);assert.equal((await remove('WRONG')).status,400);assert.equal((await remove('DELETE')).status,200);
+ assert.equal(await db.prepare('SELECT id FROM photos WHERE id=?').bind(id).first(),null);assert.equal(await db.prepare('SELECT id FROM bookmarks WHERE photo_id=?').bind(id).first(),null);const bucket=await mf.getR2Bucket('BUCKET');assert.equal(await bucket.get('originals/'+id),null);assert.equal(await bucket.get('previews/'+id),null);
+});
+await check('post pagination and escaped search filters return the correct records',async()=>{
+ const row=await db.prepare('SELECT * FROM photos WHERE id=?').bind(photoId).first();const columns=Object.keys(row);for(let n=0;n<27;n++){const copy={...row,id:'fixture-'+n,slug:'fixture-'+n,title:n===0?'Fixture 100%_literal':'Fixture '+n,caption:'Pagination fixture',published:n%2,original_key:'fixtures/original-'+n,preview_key:'fixtures/preview-'+n};await db.prepare('INSERT INTO photos ('+columns.join(',')+') VALUES ('+columns.map(()=>'?').join(',')+')').bind(...columns.map(c=>copy[c])).run()}
+ const get=async query=>{const r=await req('/api/studio/manage?view=posts&'+query,{headers:headers('test-owner')});assert.equal(r.status,200,query);return r.json()};
+ const first=await get('q=Fixture');const second=await get('q=Fixture&page=2');assert.equal(first.total,27);assert.equal(first.rows.length,24);assert.equal(second.rows.length,3);assert.equal(new Set([...first.rows,...second.rows].map(p=>p.id)).size,27);
+ assert.equal((await get('q='+encodeURIComponent('%_'))).rows.length,1);assert.equal((await get('q=Fixture&status=draft')).total,14);assert.equal((await get('q=Fixture&category=Portrait')).total,0);assert.equal((await get('q=Fixture&page=999')).page,2);
+ assert.equal((await req('/api/studio/manage?view=posts&page=-1',{headers:headers('test-owner')})).status,400);assert.equal((await req('/api/studio/manage?view=posts&status=invalid',{headers:headers('test-owner')})).status,400);
+ await db.prepare("DELETE FROM photos WHERE id LIKE 'fixture-%'").run();
+});
+await check('sales, customer and request filters and CSV preserve historical data',async()=>{
+ for(const [query,total] of [['view=sales&status=refunded&q=buyer-a',1],['view=sales&status=paid',0],['view=customers&q=buyer-a',1],['view=custom&status=interested',1],['view=support&status=open',1]]){const r=await req('/api/studio/manage?'+query,{headers:headers('test-owner')});assert.equal(r.status,200,query);assert.equal((await r.json()).total,total,query)}
+ const csv=await req('/api/studio/manage?view=sales&export=csv&status=refunded',{headers:headers('test-owner')});assert.equal(csv.status,200);assert.match(csv.headers.get('content-type'),/text\/csv/);const text=await csv.text();assert.match(text,/"15.00"/);assert.match(text,/"Test lake"/);assert.ok(!text.includes('seller_snapshot'));
+ assert.equal((await req('/api/studio/manage?view=sales&from=2026-02-30',{headers:headers('test-owner')})).status,400);
+});
+await check('photo processing worker is a deployable browser asset with CSP permission',async()=>{
+ const files=await readdir('dist/client',{recursive:true});const worker=files.find(p=>/photo-filter\.worker.*\.js$/.test(p));assert.ok(worker,'emitted worker bundle');const r=await req('/'+worker);assert.equal(r.status,200);assert.match(r.headers.get('content-type'),/javascript/);
+ const html=await req('/lab');assert.match(html.headers.get('content-security-policy'),/worker-src 'self' blob:/);const source=await r.text();assert.ok(!source.includes('file:///'));assert.ok(source.length>1000);
+});
 await check('account deletion removes owned profile and presets, retains financial record',async()=>{const r=await req('/api/account',{method:'DELETE',headers:headers(),body:'{"confirm":"DELETE"}'});assert.equal(r.status,200);assert.equal(await db.prepare('SELECT user_id FROM profiles WHERE user_id=?').bind('buyer-a').first(),null);assert.equal(await db.prepare('SELECT id FROM presets WHERE id=?').bind(presetId).first(),null);assert.ok(await db.prepare('SELECT id FROM orders WHERE id=?').bind(orderId).first())});
 console.log('All '+checks+' server integration checks passed.');
 }finally{await mf.dispose()}
