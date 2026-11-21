@@ -18,6 +18,8 @@ before(async()=>{
 after(async()=>runtime?.dispose());
 test("readers see stories and archive without registration or management navigation",async()=>{
   const home=await (await request("/")).text();assert.match(home,/Where the/);assert.doesNotMatch(home,/cntrladmin|register|sign.?up/i);
+  assert.equal((home.match(/class="magazine-spread/g)||[]).length,4);
+  assert.doesNotMatch(home,/class="(?:lead|card-grid)"/);
   for(const url of ["/join","/register","/admin","/cntrladmin/gallery","/cntrladmin/studio.mjs"]){assert.equal((await request(url)).status,404,url);}
   assert.equal((await request("/cntrladmin")).status,302);
   assert.equal((await request("/cntrladmin",{headers:reader})).status,404);
@@ -98,6 +100,9 @@ test("verified reader correspondence reaches only the owner's inbox", async () =
 });
 test("newspaper stories follow the editorial order with touch and ordinary links", async () => {
   const first=await(await request("/story/where-the-light-falls")).text();
+  assert.doesNotMatch(first,/class="article-cover"/);
+  assert.match(first,/The ridgeline appeared first/);
+  assert.match(first,/class="flow-figure"/);
   assert.match(first,/rel="next" href="\/story\/between-the-arches"/);
   assert.match(first,/\/press\/swipe.mjs/);
   const second=await(await request("/story/between-the-arches")).text();

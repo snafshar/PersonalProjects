@@ -1,6 +1,6 @@
 # Silvergrain Journal
 
-A single-author photography magazine by Sina Afshar. Readers can browse the cream-paper front page, open a story as a newspaper article, and send the editor a message. Each edition has up to ten stories in the author's chosen order. The gallery displays photography in black and white.
+A single-author photography magazine by Sina Afshar. The warm cream front page follows the original Silvergrain layout, with one photo-and-story row after another and images alternating sides. Each edition has up to ten stories in the author's chosen order. Readers open a text-first newspaper article and can send the editor a message. Photos display in black and white.
 
 ## Publishing a story
 
@@ -9,6 +9,9 @@ A single-author photography magazine by Sina Afshar. Readers can browse the crea
 3. Choose **Arrange media**. Drag a gallery photo or video onto the newspaper sheet, including across a gutter. The surrounding text reflows in every affected column. On a touch screen you can select an item and tap its destination. With a keyboard, select an item, focus a sheet and press Enter.
 4. Drag the frame to reposition it and drag its corner to resize. Hold Shift during a corner drag to keep its proportions. You can also enter an exact sheet, position, width and height. Use the arrow keys to move a focused frame or resize a focused corner. **Undo layout** and **Redo layout** include placement, captions and column changes.
 5. Give each frame a caption underneath, optional text on the image or film, and an accessible description. Overlay positions are top, center and bottom. **Use as story cover** copies the frame's annotations to the cover. Double-click a text line to edit the paragraph on the sheet.
+
+The cover appears on the front page and journal listing. An opened article begins with its heading and text. Its photos and videos appear in the positions set in the editor. Both the editor and published newspaper use whitespace between columns.
+
 6. **Save draft** keeps your changes private. **Open saved draft preview** shows the same layout readers will see. **Publish story** updates the public article. **Unpublish story** takes it back to drafts. A stale save from another tab reports a conflict.
 7. Set **Homepage order** under **Story details & cover**. Lower numbers appear earlier. Readers can follow previous and next stories by link or touch swipe. Small screens default to single-column reading and retain a Newspaper view.
 

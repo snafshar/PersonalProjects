@@ -1,4 +1,4 @@
-import {WIDTH,HEIGHT,GUTTER,prepare,paginate,measurer,clamp,anchorParagraph,resizeFrame} from "./composition.mjs";
+import {WIDTH,HEIGHT,prepare,paginate,measurer,clamp,anchorParagraph,resizeFrame} from "./composition.mjs";
 export const el=(tag,className,text)=>{const n=document.createElement(tag);if(className)n.className=className;if(text!==undefined)n.textContent=text;return n;};
 function styles(n,values){Object.assign(n.style,values);}
 function positioned(n,x,y,w,h){styles(n,{left:x+"px",top:y+"px",width:w+"px",height:h+"px"});}
@@ -44,10 +44,10 @@ export function createProof(root,options={}){
   }
   function makePage(){
     const outer=el("section","proof-page"),tag=el("div","sheet-tag"),viewport=el("div","sheet-viewport"),sheet=el("div","press-sheet");
-    const rules=el("div","press-rules"),lines=el("div","press-lines"),media=el("div","press-frames");lines.setAttribute("aria-hidden","true");
+    const lines=el("div","press-lines"),media=el("div","press-frames");lines.setAttribute("aria-hidden","true");
     if(editing){outer.append(tag);sheet.tabIndex=0;sheet.setAttribute("role","group");}
-    sheet.append(rules,lines,media);viewport.append(sheet);outer.append(viewport);root.append(outer);
-    return {outer,tag,viewport,sheet,rules,lines,media,figures:new Map()};
+    sheet.append(lines,media);viewport.append(sheet);outer.append(viewport);root.append(outer);
+    return {outer,tag,viewport,sheet,lines,media,figures:new Map()};
   }
   function makeFrame(f,a){
     const fig=el("figure","press-frame"),box=el("div","frame-box"),caption=el("figcaption","frame-caption"),overlay=el("span","on-photo"),visual=mediaNode(a,f.alt,editing);
@@ -76,7 +76,6 @@ export function createProof(root,options={}){
       const s=sections[i],height=editing?HEIGHT:p.height;
       s.tag.textContent="Sheet "+(i+1);s.sheet.dataset.page=String(i);s.sheet.setAttribute("aria-label","Sheet "+(i+1));
       s.sheet.style.height=height+"px";
-      const ruleKey=p.columns+"-"+height;if(s.rules.dataset.key!==ruleKey){s.rules.replaceChildren();s.rules.dataset.key=ruleKey;const col=(WIDTH-(p.columns-1)*GUTTER)/p.columns;for(let n=1;n<p.columns;n++){const line=el("i");line.style.left=(n*(col+GUTTER)-GUTTER/2)+"px";s.rules.append(line);}}
       const text=document.createDocumentFragment();
       for(const l of p.lines){
         const n=el("div","press-line type-"+l.kind);n.dataset.para=String(l.paragraph);
