@@ -4,6 +4,7 @@ import {readFile,readdir} from "node:fs/promises";
 import {build} from "esbuild";
 import {Miniflare, convertV4MiniflareOptions} from "miniflare";
 import path from "node:path";
+import {defaultSettings} from "../public/press/site-theme.mjs";
 let runtime,db;
 const origin="https://journal.example.test",owner={"oai-authenticated-user-id":"owner-test","oai-authenticated-user-email":"editor@example.test"},reader={"oai-authenticated-user-id":"reader-test","oai-authenticated-user-email":"reader@example.test"};
 const request=(route,options={})=>runtime.dispatchFetch(new URL(route,origin),{redirect:"manual",...options});
@@ -160,4 +161,48 @@ test("news drafts publish independently of the journal and keep news navigation"
   assert.equal((await save("unpublish",3,revised)).status,200);
   assert.equal((await request("/news/"+doc.id)).status,404);
   assert.ok(!(await(await request("/news")).text()).includes(doc.title));
+});
+
+test("site settings persist across public pages with their configured visibility and pagination", async () => {
+  const dashboard=await request("/cntrladmin/site-settings",{headers:owner});assert.equal(dashboard.status,200);
+  const initial=extract(await dashboard.text());assert.equal(initial.settings.revision,0);
+  assert.equal((await request("/cntrladmin/site-settings",{headers:reader})).status,404);
+  const value={...initial.settings,name:"Frame and Field",background:"#f6e6c8",nameColor:"#6d302a",nameFont:"georgia",author:"The editor",tagline:"Notes from the field",footerText:"The editor",contentWidth:1100,postsPerPage:2,photoLayout:"left",menuNews:false,contactForm:false,showCaptions:false,showDates:false,showLocations:false};
+  assert.equal((await post("site-settings",value,reader)).status,404);
+  const saved=await post("site-settings",value);assert.equal(saved.status,200);assert.equal((await saved.json()).revision,1);
+  const retry=await post("site-settings",value);assert.equal(retry.status,200);assert.equal((await retry.json()).revision,1);
+  const front=await(await request("/")).text();
+  assert.match(front,/<title>Frame and Field<\/title>/);assert.match(front,/--paper:#f6e6c8/);assert.match(front,/color:#6d302a/);
+  assert.match(front,/Notes from the field/);assert.match(front,/max-width:1100px/);
+  assert.equal((front.match(/class="magazine-spread/g)||[]).length,2);
+  assert.ok(!front.includes('href="/news">News</a>'));
+  assert.ok(!front.includes("Low cloud beneath the ridgeline, Dolomites."));
+  for(const route of ["/about","/news","/contact","/archive","/story/where-the-light-falls"]){assert.ok((await(await request(route)).text()).includes("Frame and Field"),route);}
+  const article=await(await request("/story/where-the-light-falls")).text();
+  assert.doesNotMatch(article,/<time datetime=/);assert.ok(extract(article).doc.frames.every(f=>f.caption===""));
+  const contact=await(await request("/contact")).text();assert.ok(!contact.includes('name="body"'));
+  const closed=await request("/contact",{method:"POST",headers:{Origin:origin,"Content-Type":"application/x-www-form-urlencoded"},body:"name=Reader&body=Message"});assert.equal(closed.status,403);
+  assert.equal((await post("site-settings",{...defaultSettings,revision:1})).status,200);
+});
+test("settings preview stays private and validation rejects unsafe or stale writes", async () => {
+  assert.equal((await request("/cntrladmin/site-preview")).status,404);
+  assert.equal((await request("/cntrladmin/settings.mjs",{headers:reader})).status,404);
+  const value={...defaultSettings,revision:2,name:'A <script> preview'};
+  const preview=await post("site-preview",value);assert.equal(preview.status,200);
+  assert.match(preview.headers.get("Cache-Control"),/no-store/);
+  const markup=(await preview.json()).html;assert.ok(markup.includes("A &lt;script&gt; preview"));assert.ok(!markup.includes("A <script> preview"));
+  assert.match(await(await request("/")).text(),/<title>MyPhotoStories<\/title>/);
+  for(const patch of [{background:"red;display:none"},{nameFont:"url(evil)"},{postsPerPage:0},{contentWidth:5000},{showDates:"false"}]){
+    assert.equal((await post("site-settings",{...defaultSettings,revision:2,...patch})).status,422);
+  }
+  const old=await post("site-settings",{...defaultSettings,revision:1,name:"From an old tab"});assert.equal(old.status,409);
+  const foreign=await request("/cntrladmin/api/site-settings",{method:"POST",headers:{...owner,"X-Journal-Write":"studio","Content-Type":"application/json",Origin:"https://elsewhere.example.test"},body:JSON.stringify({...defaultSettings,revision:2})});assert.equal(foreign.status,403);
+  assert.equal(extract(await(await request("/cntrladmin/site-settings",{headers:owner})).text()).settings.revision,2);
+});
+test("concurrent settings edits preserve a single complete version", async () => {
+  const results=await Promise.all([post("site-settings",{...defaultSettings,revision:2,background:"#eee2c9"}),post("site-settings",{...defaultSettings,revision:2,background:"#ece5d6"})]);
+  assert.deepEqual(results.map(r=>r.status).sort(),[200,409]);
+  const current=extract(await(await request("/cntrladmin/site-settings",{headers:owner})).text()).settings;
+  assert.equal(current.revision,3);assert.ok(["#eee2c9","#ece5d6"].includes(current.background));
+  assert.equal((await post("site-settings",{...defaultSettings,revision:3})).status,200);
 });

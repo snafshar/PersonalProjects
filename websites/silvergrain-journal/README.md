@@ -17,6 +17,12 @@ The cover appears on the front page and journal listing. An opened article begin
 
 Photos can be JPEG, PNG or WebP up to 16 MiB. Videos can be MP4 or WebM up to 80 MiB. Uploaded files enter the private gallery. A file becomes public when referenced by a published article. Unpublishing its last public reference removes public access.
 
+## Site settings
+
+Open **Site settings** in the dashboard at `/cntrladmin/site-settings`. Edit the blog name, tagline, author, location, search description and copyright credit. Colour controls cover the paper, name, main text, secondary text, links and separators. You can also choose the name font and size, story preview text size, page width, photo row spacing, posts per page, photo placement and monochrome or original-colour display.
+
+The visibility controls cover captions, photo locations, dates, author details, row separators, menu links and the contact form. The desktop and mobile preview shows changes before publication. **Publish settings** applies them. **Revert changes** restores the last saved values, and **Use default settings** fills in the original settings for review. Changes to the same settings in another tab produce a conflict message.
+
 ## About me and News
 
 **About me** and **News** are available in both the public navigation and the private dashboard. Publish your biography from **About me**. The initial biography uses the name, location and purpose already shown on the journal.

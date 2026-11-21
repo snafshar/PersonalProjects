@@ -110,6 +110,7 @@ if(state.view==="about"){
   window.addEventListener("beforeunload",event=>{if(dirty||saving){event.preventDefault();event.returnValue="";}});
 }
 if(state.view==="editor")startEditor();
+if(state.view==="site-settings")import("/cntrladmin/settings.mjs").then(module=>module.startSiteSettings(state));
 
 function readParagraphs(root){
   const paras=[];let runs=[],kind="p";

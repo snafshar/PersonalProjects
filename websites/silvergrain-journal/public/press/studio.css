@@ -15,3 +15,29 @@
 .letter-card time { color: var(--muted); font-size: .85rem; }
 .letter-card p { margin: .7rem 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 .desk-nav { flex-wrap: wrap; gap: 12px 25px; }
+
+.site-settings-layout { display: grid; grid-template-columns: minmax(300px, 480px) minmax(0, 1fr); gap: 36px; align-items: start; }
+.site-settings-form fieldset { margin: 0 0 24px; border: 0; border-top: 1px solid var(--line); padding: 16px 0 0; min-width: 0; }
+.site-settings-form legend { padding: 0 10px 0 0; font: 28px/1.2 var(--serif); }
+.site-settings-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.setting-field { display: grid; gap: 6px; min-width: 0; }
+.setting-field:has(textarea) { grid-column: 1 / -1; }
+.setting-field label { font-size: 14px; }
+.site-settings-form .setting-check { display: flex; flex-direction: row; align-items: center; gap: 9px; font-size: 14px; font-weight: 400; }
+.site-settings-form input[type=checkbox] { width: 17px; height: 17px; padding: 0; flex: none; accent-color: var(--ink); }
+.color-pair { display: flex; align-items: center; gap: 7px; }
+.studio-body .color-pair input[type=color] { flex: none; width: 43px; height: 41px; padding: 3px; cursor: pointer; }
+.color-pair input[data-color-text] { font: 14px/1.4 ui-monospace, monospace; }
+.settings-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+#settings-status { margin-top: 12px; font-size: 14px; }
+.site-preview { position: sticky; top: 20px; min-width: 0; }
+.site-preview header { display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap; }
+.site-preview h2 { font-size: 30px; }
+.site-preview #preview-status { margin-block: 8px 12px; }
+.preview-sizes { display: flex; gap: 3px; }
+.preview-sizes button { border: 1px solid var(--line); padding: 6px 10px; font-size: 14px; }
+.preview-sizes button[aria-pressed=true] { background: var(--ink); color: var(--paper); }
+#preview-viewport { position: relative; width: 100%; overflow: hidden; border: 1px solid var(--line); background: white; }
+#site-preview { position: absolute; inset: 0 auto auto 0; border: 0; transform-origin: top left; }
+@media(max-width: 980px) { .site-settings-layout { grid-template-columns: 1fr; } .site-preview { position: static; grid-row: 1; } }
+@media(max-width: 440px) { .site-settings-fields { grid-template-columns: 1fr; } }
