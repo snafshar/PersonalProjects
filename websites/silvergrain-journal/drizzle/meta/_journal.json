@@ -15,6 +15,13 @@
       "when": 1795193466434,
       "tag": "0001_reader_letters",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1795225426960,
+      "tag": "0002_natural_stark_industries",
+      "breakpoints": true
     }
   ]
 }

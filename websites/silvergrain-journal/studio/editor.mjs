@@ -111,6 +111,7 @@ if(state.view==="about"){
 }
 if(state.view==="editor")startEditor();
 if(state.view==="site-settings")import("/cntrladmin/settings.mjs").then(module=>module.startSiteSettings(state));
+if(state.view==="statistics")import("/cntrladmin/statistics.mjs").then(module=>module.initStatistics(state));
 
 function readParagraphs(root){
   const paras=[];let runs=[],kind="p";

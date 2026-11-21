@@ -6,6 +6,9 @@ import {defaultSettings,saveSiteSettings,siteSettings,validateSettings,type Site
 import settingsCode from "../studio/site-settings.mjs?raw";
 import {serveMedia,upload} from "./media";
 import type {Bindings} from "./types";
+import {clearVisits,collectVisit,exportVisits,saveVisitSettings,visitPolicy,visitReport,visitSession,visitSettings} from "./analytics";
+import {privacyPage,statisticsPage,statisticsSession} from "./views/statistics";
+import statisticsCode from "../studio/statistics.mjs?raw";
 import studioCode from "../studio/editor.mjs?raw";
 const policy="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; media-src 'self' blob:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'";
 const headers=(privatePage=false)=>({"Cache-Control":"private, no-store","X-Content-Type-Options":"nosniff","Referrer-Policy":"strict-origin-when-cross-origin","Content-Security-Policy":policy+(privatePage?"; frame-ancestors 'self' https://chatgpt.com":""),...(privatePage?{"X-Robots-Tag":"noindex, nofollow, noarchive","Vary":"Cookie"}:{})});
@@ -18,7 +21,7 @@ async function appearancePreview(env:Bindings,site:SiteSettings){
   return markup.replace("</head>",'<style>a,button,input,select,textarea{pointer-events:none}</style></head>');
 }
 export async function journal(req:Request,env:Bindings):Promise<Response>{
-  const url=new URL(req.url),path=url.pathname.replace(/\/$/,"")||"/",priv=path==="/cntrladmin"||path.startsWith("/cntrladmin/"),api=path.startsWith("/cntrladmin/api/");
+  const url=new URL(req.url),path=url.pathname.replace(/\/$/,"")||"/",priv=path==="/cntrladmin"||path.startsWith("/cntrladmin/"),api=path.startsWith("/cntrladmin/api/")||path==="/visit-event";
   let site:SiteSettings=defaultSettings;
   try {
     site=await siteSettings(env);
@@ -35,10 +38,17 @@ export async function journal(req:Request,env:Bindings):Promise<Response>{
         if(path==="/cntrladmin/api/about")return data(await saveAbout(env,await jsonInput(req)));
         if(path==="/cntrladmin/api/site-settings")return data(await saveSiteSettings(env,await jsonInput(req)));
         if(path==="/cntrladmin/api/site-preview")return data({html:await appearancePreview(env,validateSettings(await jsonInput(req)))});
+        if(path==="/cntrladmin/api/visit-settings")return data(await saveVisitSettings(env,await jsonInput(req)));
+        if(path==="/cntrladmin/api/clear-visits")return data(await clearVisits(env,await jsonInput(req)));
         if(path==="/cntrladmin/api/media")return data(await upload(req,env),201);
         return data({error:"Page not found."},404);
       }
       if(req.method!=="GET")return html(missing(site),405,true);
+      if(path==="/cntrladmin/statistics.mjs")return new Response(statisticsCode,{headers:{...headers(true),"Content-Type":"text/javascript; charset=utf-8"}});
+      if(path==="/cntrladmin/statistics")return html(statisticsPage(await visitReport(env,url),site),200,true);
+      if(path==="/cntrladmin/statistics.csv")return new Response(await exportVisits(env,url),{headers:{...headers(true),"Content-Type":"text/csv; charset=utf-8","Content-Disposition":'attachment; filename="myphotostories-visits.csv"'}});
+      const visitMatch=/^\/cntrladmin\/statistics\/visit\/([a-f0-9-]+)$/.exec(path);
+      if(visitMatch)return html(statisticsSession(await visitSession(env,visitMatch[1]),site),200,true);
       if(path==="/cntrladmin/settings.mjs")return new Response(settingsCode,{headers:{...headers(true),"Content-Type":"text/javascript; charset=utf-8"}});
       if(path==="/cntrladmin/site-settings")return html(siteSettingsPage(site),200,true);
       if(path==="/cntrladmin/site-preview")return html(await appearancePreview(env,site),200,true);
@@ -59,6 +69,12 @@ export async function journal(req:Request,env:Bindings):Promise<Response>{
         return html(article(row.draft,await usedGallery(env,usedIds(row.draft)),true,{},site),200,true);}
       return html(missing(site),404,true);
     }
+    if(path==="/visit-event")return await collectVisit(req,env);
+    if(path==="/visit-policy"&&req.method==="GET"){
+      const cfg=await visitSettings(env);
+      return data({enabled:cfg.enabled,retentionDays:cfg.retentionDays,ipMode:cfg.ipMode,policy:visitPolicy(cfg),excluded:!!req.headers.get("oai-authenticated-user-id")&&await isOwner(req,env)});
+    }
+    if(path==="/privacy"&&req.method==="GET")return html(privacyPage(await visitSettings(env),site,await contacts(env)));
     if(path==="/contact" && req.method==="POST"){
       if(!site.contactForm)return html(contactPage(await contacts(env),{prompt:"",ticket:""},false,"",undefined,site),403);
       const form=await contactInput(req);

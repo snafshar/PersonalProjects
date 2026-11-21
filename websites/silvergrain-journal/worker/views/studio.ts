@@ -2,11 +2,11 @@ import type { About, Asset, Contacts, EditEntry, Letter } from "../types";
 import {defaultSettings,settingsGroups,type SiteSettings} from "../site-settings";
 import { dateText, esc, icon, json, pathFor, shell } from "./shared";
 
-function workNav(active:string){
-  return `<nav class="desk-nav" aria-label="Studio navigation">${[["/cntrladmin","Stories"],["/cntrladmin/news","News"],["/cntrladmin/about","About me"],["/cntrladmin/gallery","Gallery"],["/cntrladmin/contacts","Contact links"],["/cntrladmin/inbox","Inbox"],["/cntrladmin/site-settings","Site settings"]].map(([url,text])=>`<a href="${url}"${text===active?' aria-current="page"':""}>${text}</a>`).join("")}</nav>`;
+export function workNav(active:string){
+  return `<nav class="desk-nav" aria-label="Studio navigation">${[["/cntrladmin","Stories"],["/cntrladmin/news","News"],["/cntrladmin/about","About me"],["/cntrladmin/gallery","Gallery"],["/cntrladmin/contacts","Contact links"],["/cntrladmin/inbox","Inbox"],["/cntrladmin/site-settings","Site settings"],["/cntrladmin/statistics","Statistics & logs"]].map(([url,text])=>`<a href="${url}"${text===active?' aria-current="page"':""}>${text}</a>`).join("")}</nav>`;
 }
 const state=(obj:unknown)=>`<script id="studio-data" type="application/json">${json(obj)}</script>`;
-const desk=(title:string,markup:string,site:SiteSettings=defaultSettings)=>shell(title,`<main id="main" class="studio-main wrap">${markup}</main>`,"",["/cntrladmin/studio.mjs"],true,undefined,site);
+export const desk=(title:string,markup:string,site:SiteSettings=defaultSettings)=>shell(title,`<main id="main" class="studio-main wrap">${markup}</main>`,"",["/cntrladmin/studio.mjs"],true,undefined,site);
 export function overview(rows:EditEntry[],news=false,site:SiteSettings=defaultSettings){
   rows=rows.filter(r=>(r.draft.section==="news")===news);
   return desk("Editorial desk",workNav(news?"News":"Stories")+`<div class="desk-heading"><div><p class="eyebrow">Editorial desk</p><h1>${news?"News":"Stories"}</h1></div><a class="action" href="/cntrladmin/new${news?"?section=news":""}">${news?"New update":"New story"}</a></div><div class="story-table"><div class="desk-row table-head"><span>Title</span><span>Status</span><span>Order</span></div>${rows.map(r=>`<a class="desk-row" href="/cntrladmin/edit/${r.id}"><div><strong>${esc(r.draft.title)}</strong><small>${esc(r.draft.category)} · ${dateText(r.draft.date)}${r.sample?" · Sample":""}</small></div><span>${r.published?r.pending?"Published · draft changes":"Published":"Draft"}</span><span>${r.draft.order}</span></a>`).join("")||`<p class="empty-note">${news?"Create your first news update.":"Create your first story."}</p>`}</div>`+state({view:"stories"}),site);
