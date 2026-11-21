@@ -1,4 +1,4 @@
-# Silvergrain Journal
+# MyPhotoStories
 
 A single-author photography magazine by Sina Afshar. The warm cream front page follows the original Silvergrain layout, with one photo-and-story row after another and images alternating sides. Each edition has up to ten stories in the author's chosen order. Readers open a text-first newspaper article and can send the editor a message. Photos display in black and white.
 

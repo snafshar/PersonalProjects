@@ -31,7 +31,7 @@ export function home(entries:Entry[],assets:Asset[],contacts:Contacts,requested:
   const media=assetsMap(assets),pages=Math.max(1,Math.ceil(entries.length/10)),page=Math.min(pages,requested);
   const batch=entries.slice((page-1)*10,page*10);
   const links=channels(contacts);
-  return shell("",`<main id="main" class="wrap magazine-page"><header class="magazine-heading"><div><h1>Silvergrain</h1><p>Photography by Sina Afshar</p></div></header>${batch.map((d,i)=>spread(d,media,i)).join("")}${!batch.length?'<p class="empty-note">The first story will appear here.</p>':""}${pager(page,pages,"/")}${links?`<section class="contact-strip"><h2>Contact me</h2><div class="channels">${links}</div></section>`:""}</main>`,"Home",pages>1?["/press/swipe.mjs"]:[]);
+  return shell("",`<main id="main" class="wrap magazine-page"><header class="magazine-heading"><div><h1>MyPhotoStories</h1><p>Photography by Sina Afshar</p></div></header>${batch.map((d,i)=>spread(d,media,i)).join("")}${!batch.length?'<p class="empty-note">The first story will appear here.</p>':""}${pager(page,pages,"/")}${links?`<section class="contact-strip"><h2>Contact me</h2><div class="channels">${links}</div></section>`:""}</main>`,"Home",pages>1?["/press/swipe.mjs"]:[]);
 }
 export function archive(entries:Entry[],assets:Asset[],u:URL){
   const media=assetsMap(assets),q=(u.searchParams.get("q")||"").slice(0,160),cat=(u.searchParams.get("category")||"").slice(0,70);
