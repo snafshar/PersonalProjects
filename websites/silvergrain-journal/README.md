@@ -17,6 +17,12 @@ The cover appears on the front page and journal listing. An opened article begin
 
 Photos can be JPEG, PNG or WebP up to 16 MiB. Videos can be MP4 or WebM up to 80 MiB. Uploaded files enter the private gallery. A file becomes public when referenced by a published article. Unpublishing its last public reference removes public access.
 
+## About me and News
+
+**About me** and **News** are available in both the public navigation and the private dashboard. Publish your biography from **About me**. The initial biography uses the name, location and purpose already shown on the journal.
+
+Under **News**, choose **New update** to use the same newspaper editor, private draft preview, media gallery and publishing controls as a story. Published updates appear at `/news`, with individual articles at `/news/<id>`. News drafts stay private. Existing journal stories keep their original addresses and order.
+
 ## Contact
 
 In the dashboard, **Contact links** accepts Instagram and Telegram usernames, a WhatsApp number or chat link, and optional public email and phone details. A blank field hides that channel. **Inbox** receives reader contact forms. The form uses a short-lived arithmetic challenge, submission deduplication and rate limiting. Contact form messages stay in the dashboard.

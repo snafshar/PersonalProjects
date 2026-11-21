@@ -91,6 +91,24 @@ if(state.view==="contacts"){
     try{const v=await send("contacts",Object.fromEntries(new FormData(form)));for(const [key,url] of Object.entries(v))form.elements.namedItem(key).value=url;$("#status").classList.remove("error");$("#status").textContent="Contact links saved.";}
     catch(err){report(err);}finally{b.disabled=false;}};
 }
+if(state.view==="about"){
+  const form=$("#about"),button=form.querySelector("button"),status=$("#status");
+  let revision=state.revision,epoch=0,dirty=false,saving=false;
+  form.addEventListener("input",()=>{dirty=true;epoch++;status.textContent="Unsaved changes";});
+  form.onsubmit=async event=>{
+    event.preventDefault();if(saving)return;
+    const captured=epoch;
+    saving=true;button.disabled=true;status.classList.remove("error");status.textContent="Publishing…";
+    try{
+      const value=await send("about",{body:form.elements.namedItem("body").value,revision});
+      revision=value.revision;
+      if(captured===epoch)dirty=false;
+      status.textContent=dirty?"Biography published. You have unsaved changes.":"Biography published.";
+    }catch(error){report(error);}
+    finally{saving=false;button.disabled=false;}
+  };
+  window.addEventListener("beforeunload",event=>{if(dirty||saving){event.preventDefault();event.returnValue="";}});
+}
 if(state.view==="editor")startEditor();
 
 function readParagraphs(root){
@@ -120,6 +138,9 @@ function startEditor(){
   const rec=state.record;
   const now=new Date(), localDate=new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,10);
   let doc=rec?structuredClone(rec.draft):{id:"",title:"",deck:"",category:"Journal",location:"",date:localDate,cover:"",coverCaption:"",coverAlt:"",order:0,columns:2,align:"justify",pages:1,body:[],frames:[]};
+  doc.section??=state.section||"journal";
+  const news=doc.section==="news";
+  if(news&&!rec)doc.category="News";
   doc.coverOverlay ??= "";
   doc.coverOverlayAt ??= "bottom";
   const layouts = layoutHistory(doc);
@@ -260,9 +281,9 @@ function startEditor(){
       const result=await send("entry",{doc,revision,action});revision=result.revision;published=result.published;
       if(captured===epoch)dirty=false;
       $("#save-state").textContent=dirty?"Unsaved changes":action==="publish"?"Published":published&&result.pending?"Draft saved · live story unchanged":"Draft saved";
-      notice.classList.remove("error");notice.textContent=action==="publish"?"Story published.":action==="unpublish"?"Story unpublished.":"Draft saved.";
+      notice.classList.remove("error");notice.textContent=action==="publish"?(news?"News update published.":"Story published."):action==="unpublish"?"Story unpublished.":"Draft saved.";
       history.replaceState(null,"","/cntrladmin/edit/"+doc.id);const preview=$("#preview-link");preview.href="/cntrladmin/preview/"+doc.id;preview.hidden=false;
-      const live=$("#public-link");live.href="/story/"+doc.id;live.hidden=!published;$("#unpublish").hidden=!published;
+      const live=$("#public-link");live.href=(news?"/news/":"/story/")+doc.id;live.hidden=!published;$("#unpublish").hidden=!published;
     }catch(err){$("#save-state").textContent=dirty?"Unsaved changes":"Save failed";report(err);}
     finally{saving=false;for(const n of [$("#save-draft"),$("#publish"),$("#unpublish")])n.disabled=false;}
   }

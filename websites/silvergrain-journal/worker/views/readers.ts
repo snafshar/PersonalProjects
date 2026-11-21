@@ -1,4 +1,4 @@
-import type { Asset, Contacts, Entry } from "../types";
+import type { About, Asset, Contacts, Entry } from "../types";
 import type { Challenge } from "../letters";
 import { isSample } from "../store";
 import { assetsMap, coverMedia, dateText, esc, figure, icon, json, pathFor, rich, shell } from "./shared";
@@ -42,6 +42,16 @@ export function archive(entries:Entry[],assets:Asset[],u:URL){
   const catLink=(s:string)=>{const args=new URLSearchParams();if(s)args.set("category",s);if(q)args.set("q",q);return "/archive"+(args.size?"?"+esc(args.toString()):"");};
   return shell("Journal",`<main id="main" class="wrap magazine-page archive-page"><div class="magazine-heading archive-title"><h1>Journal</h1><form action="/archive" role="search">${cat?`<input type="hidden" name="category" value="${esc(cat)}">`:""}<label class="search-box">${icon("search")}<input type="search" name="q" aria-label="Search stories" placeholder="Search stories" maxlength="160" value="${esc(q)}"${u.searchParams.get("focus")==="search"?" autofocus":""}></label><button class="action">Search</button></form></div><nav class="filters" aria-label="Filter stories by category">${["",...categories].map(s=>`<a href="${catLink(s)}"${s===cat?' aria-current="true"':""}>${esc(s||"All stories")}</a>`).join("")}</nav><p class="archive-count">${matches.length} ${matches.length===1?"story":"stories"}${q?" matching “"+esc(q)+"”":""}</p>${matches.length?matches.slice((page-1)*10,page*10).map((d,i)=>spread(d,media,i)).join(""):'<p class="empty-note">No stories match this search. <a href="/archive">View all stories</a></p>'}${pager(page,n,"/archive",queryset)}</main>`,"Journal",n>1?["/press/swipe.mjs"]:[]);
 }
+export function aboutPage(content:About){
+  const paragraphs=content.body.split(/\n\s*\n/).filter(Boolean).map(p=>`<p>${esc(p)}</p>`).join("");
+  return shell("About me",`<main id="main" class="wrap info-page"><header class="magazine-heading"><h1>About me</h1></header><div class="about-copy">${paragraphs}</div></main>`,"About me");
+}
+export function newsPage(entries:Entry[],url:URL){
+  const pages=Math.max(1,Math.ceil(entries.length/10));
+  const page=Math.max(1,Math.min(pages,parseInt(url.searchParams.get("page")||"1")||1));
+  const updates=entries.slice((page-1)*10,page*10).map(d=>`<article class="news-item"><time datetime="${d.date}">${dateText(d.date)}</time><h2><a href="${pathFor(d)}">${esc(d.title)}</a></h2>${d.deck?`<p>${esc(d.deck)}</p>`:""}</article>`).join("");
+  return shell("News",`<main id="main" class="wrap info-page"><header class="magazine-heading"><h1>News</h1></header>${updates||'<p class="empty-note">News and announcements will appear here.</p>'}${pager(page,pages,"/news")}</main>`,"News",pages>1?["/press/swipe.mjs"]:[]);
+}
 export function contactPage(c:Contacts, check:Challenge, sent=false, error="", form?:URLSearchParams) {
   const links=channels(c);
   const field=(name:string)=>esc(form?.get(name)||"");
@@ -58,12 +68,13 @@ export function contactPage(c:Contacts, check:Challenge, sent=false, error="", f
       <button class="action">Send message</button>
     </form></section></main>`,"Contact");
 }
-type StoryLinks = {previous?:Pick<Entry,"id"|"title">; next?:Pick<Entry,"id"|"title">};
+type StoryLinks = {previous?:Pick<Entry,"id"|"title"|"section">; next?:Pick<Entry,"id"|"title"|"section">};
 export function article(d:Entry,assets:Asset[],preview=false,links:StoryLinks={}){
-  const storyNav = links.previous || links.next ? `<nav class="story-pager" aria-label="Browse stories">${links.previous?`<a rel="prev" href="/story/${links.previous.id}"><small>Previous story</small>${esc(links.previous.title)}</a>`:"<span></span>"}${links.next?`<a rel="next" href="/story/${links.next.id}"><small>Next story</small>${esc(links.next.title)}</a>`:""}</nav>` : "";
+  const news=d.section==="news";
+  const storyNav = links.previous || links.next ? `<nav class="story-pager" aria-label="${news?"Browse news":"Browse stories"}">${links.previous?`<a rel="prev" href="${pathFor(links.previous)}"><small>${news?"Previous update":"Previous story"}</small>${esc(links.previous.title)}</a>`:"<span></span>"}${links.next?`<a rel="next" href="${pathFor(links.next)}"><small>${news?"Next update":"Next story"}</small>${esc(links.next.title)}</a>`:""}</nav>` : "";
   const media=assetsMap(assets);
   const frames=[...d.frames].sort((a,b)=>a.page-b.page||a.y-b.y||a.x-b.x);
   const fallback=d.body.map((p,i)=>rich(p)+frames.filter((_f,j)=>Math.min(d.body.length-1,Math.floor((j+1)*d.body.length/(frames.length+1)))===i).map(f=>media.has(f.asset)?figure(f,media.get(f.asset)!):"").join("")).join("")+(!d.body.length?frames.map(f=>media.has(f.asset)?figure(f,media.get(f.asset)!):"").join(""):"");
-  return shell(d.title,`<main id="main" class="wrap article-page"><article><header class="article-head"><div class="entry-meta"><span>${esc(d.category)}</span><i></i><time datetime="${d.date}">${dateText(d.date)}</time></div><h1>${esc(d.title)}</h1>${d.deck?`<p class="article-deck">${esc(d.deck)}</p>`:""}<div class="byline">${preview?"Private draft":isSample(d.id)?"Sample story":"Sina Afshar"}${d.location?" <b>·</b> "+esc(d.location):""}</div></header><div class="read-tools" id="read-tools" hidden><span>Reading view</span><div class="read-switch"><button data-view="paper">Newspaper</button><button data-view="flow">Single column</button></div><button id="print" aria-label="Print story" title="Print story">${icon("print")}</button></div><div id="article-fallback" class="reading-flow">${fallback}</div><div id="article-press" hidden></div><script type="application/json" id="article-data">${json({doc:d,assets})}</script></article>${storyNav}<div class="article-end"><a href="/archive" class="archive-link">${icon("grid")} Back to the journal</a></div></main>`,"Journal",preview?["/press/read.mjs"]:["/press/read.mjs","/press/swipe.mjs"],false,d.deck||d.title);
+  return shell(d.title,`<main id="main" class="wrap article-page"><article><header class="article-head"><div class="entry-meta"><span>${esc(d.category)}</span><i></i><time datetime="${d.date}">${dateText(d.date)}</time></div><h1>${esc(d.title)}</h1>${d.deck?`<p class="article-deck">${esc(d.deck)}</p>`:""}<div class="byline">${preview?"Private draft":isSample(d.id)?"Sample story":"Sina Afshar"}${d.location?" <b>·</b> "+esc(d.location):""}</div></header><div class="read-tools" id="read-tools" hidden><span>Reading view</span><div class="read-switch"><button data-view="paper">Newspaper</button><button data-view="flow">Single column</button></div><button id="print" aria-label="Print story" title="Print story">${icon("print")}</button></div><div id="article-fallback" class="reading-flow">${fallback}</div><div id="article-press" hidden></div><script type="application/json" id="article-data">${json({doc:d,assets})}</script></article>${storyNav}<div class="article-end"><a href="${news?"/news":"/archive"}" class="archive-link">${icon("grid")} ${news?"Back to news":"Back to the journal"}</a></div></main>`,news?"News":"Journal",preview?["/press/read.mjs"]:["/press/read.mjs","/press/swipe.mjs"],false,d.deck||d.title);
 }
 export function missing(){return shell("Page not found",'<main class="wrap quiet-page" id="main"><p class="eyebrow">404</p><h1>Page not found</h1><a class="quiet-link" href="/">Return to the journal</a></main>');}

@@ -1,7 +1,7 @@
-import {archive, article, contactPage, home, missing} from "./views/readers";
+import {aboutPage, archive, article, contactPage, home, missing, newsPage} from "./views/readers";
 import {acceptLetter, challenge, contactInput, inbox} from "./letters";
-import {editorPage,inboxPage,mediaPage,overview,settingsPage} from "./views/studio";
-import {contacts,editable,fail,gallery,isOwner,jsonInput,liveEntries,liveEntry,neighbors,Problem,saveContacts,saveEntry,usedGallery,usedIds,validId,verifyWrite} from "./store";
+import {aboutEditor,editorPage,inboxPage,mediaPage,overview,settingsPage} from "./views/studio";
+import {about,contacts,editable,fail,gallery,isOwner,jsonInput,liveEntries,liveEntry,neighbors,Problem,saveAbout,saveContacts,saveEntry,usedGallery,usedIds,validId,verifyWrite} from "./store";
 import {serveMedia,upload} from "./media";
 import type {Bindings} from "./types";
 import studioCode from "../studio/editor.mjs?raw";
@@ -22,12 +22,14 @@ export async function journal(req:Request,env:Bindings):Promise<Response>{
         verifyWrite(req);
         if(path==="/cntrladmin/api/entry")return data(await saveEntry(env,await jsonInput(req)));
         if(path==="/cntrladmin/api/contacts")return data(await saveContacts(env,await jsonInput(req)));
+        if(path==="/cntrladmin/api/about")return data(await saveAbout(env,await jsonInput(req)));
         if(path==="/cntrladmin/api/media")return data(await upload(req,env),201);
         return data({error:"Page not found."},404);
       }
       if(req.method!=="GET")return html(missing(),405,true);
       if(path==="/cntrladmin/studio.mjs")return new Response(studioCode,{headers:{...headers(true),"Content-Type":"text/javascript; charset=utf-8"}});
-      if(path==="/cntrladmin")return html(overview(await editable(env)),200,true);
+      if(path==="/cntrladmin"||path==="/cntrladmin/news")return html(overview(await editable(env),path==="/cntrladmin/news"),200,true);
+      if(path==="/cntrladmin/about")return html(aboutEditor(await about(env)),200,true);
       if(path==="/cntrladmin/contacts")return html(settingsPage(await contacts(env)),200,true);
       if(path==="/cntrladmin/inbox"){
         const before=Number(url.searchParams.get("before")||Number.MAX_SAFE_INTEGER);
@@ -35,7 +37,7 @@ export async function journal(req:Request,env:Bindings):Promise<Response>{
         return html(inboxPage(await inbox(env,before)),200,true);
       }
       if(path==="/cntrladmin/gallery")return html(mediaPage(await gallery(env)),200,true);
-      if(path==="/cntrladmin/new")return html(editorPage(null,await gallery(env)),200,true);
+      if(path==="/cntrladmin/new")return html(editorPage(null,await gallery(env),url.searchParams.get("section")==="news"),200,true);
       const match=/^\/cntrladmin\/(edit|preview)\/([a-z0-9-]+)$/.exec(path);
       if(match){const row=(await editable(env)).find(r=>r.id===match[2]);if(!row)return html(missing(),404,true);
         if(match[1]==="edit")return html(editorPage(row,await gallery(env)),200,true);
@@ -55,12 +57,20 @@ export async function journal(req:Request,env:Bindings):Promise<Response>{
     if(path.startsWith("/media/")){const id=path.slice(7);if(!validId(id))fail(404,"Page not found.");return await serveMedia(req,env,id);}
     if(path==="/robots.txt")return new Response("User-agent: *\nAllow: /\n",{headers:{"Content-Type":"text/plain"}});
     if(path==="/contact")return html(contactPage(await contacts(env),await challenge(env),url.searchParams.get("sent")==="1"));
+    if(path==="/about")return html(aboutPage(await about(env)));
+    if(path==="/news")return html(newsPage((await liveEntries(env)).filter(d=>d.section==="news"),url));
     if(path==="/"||path==="/archive"){
-      const posts=await liveEntries(env),assets=await usedGallery(env,posts.map(p=>p.cover));
+      const posts=(await liveEntries(env)).filter(d=>d.section!=="news"),assets=await usedGallery(env,posts.map(p=>p.cover));
       if(path==="/archive")return html(archive(posts,assets,url));
       return html(home(posts,assets,await contacts(env),Math.max(1,parseInt(url.searchParams.get("page")||"1")||1)));
     }
-    if(path.startsWith("/story/")){const id=path.slice(7);if(!validId(id))return html(missing(),404);const doc=await liveEntry(env,id);return doc?html(article(doc,await usedGallery(env,usedIds(doc)),false,await neighbors(env,id))):html(missing(),404);}
+    if(path.startsWith("/story/")||path.startsWith("/news/")){
+      const section=path.startsWith("/news/")?"news":"journal";
+      const id=path.slice(section==="news"?6:7);
+      if(!validId(id))return html(missing(),404);
+      const doc=await liveEntry(env,id);
+      return doc&&(doc.section||"journal")===section?html(article(doc,await usedGallery(env,usedIds(doc)),false,await neighbors(env,id,section))):html(missing(),404);
+    }
     return html(missing(),404);
   }catch(err){
     if(err instanceof Problem)return api?data({error:err.message},err.status):html(missing(),err.status,priv);

@@ -110,3 +110,54 @@ test("newspaper stories follow the editorial order with touch and ordinary links
   const preview=await(await request("/cntrladmin/preview/where-the-light-falls",{headers:owner})).text();
   assert.ok(!preview.includes('class="story-pager"'));
 });
+
+test("the owner can publish an escaped biography with retry and conflict protection", async () => {
+  const front=await(await request("/")).text();
+  assert.match(front,/href="\/about"/); assert.match(front,/href="\/news"/);
+  assert.match(await(await request("/about")).text(),/Sina Afshar/);
+  assert.equal((await request("/cntrladmin/about",{headers:reader})).status,404);
+  const initial=extract(await(await request("/cntrladmin/about",{headers:owner})).text());
+  const value={body:'A biography with <script>unsafe()</script>.\n\nA second paragraph.',revision:initial.revision};
+  assert.equal((await post("about",value,reader)).status,404);
+  assert.equal((await post("about",value)).status,200);
+  const retry=await post("about",value);assert.equal(retry.status,200);assert.equal((await retry.json()).revision,1);
+  assert.equal((await post("about",{body:"An older tab",revision:0})).status,409);
+  const published=await(await request("/about")).text();
+  assert.match(published,/&lt;script&gt;unsafe\(\)&lt;\/script&gt;/);
+  assert.ok(!published.includes('<script>unsafe()'));
+  assert.match(published,/<p>A second paragraph\.<\/p>/);
+  const saved=extract(await(await request("/cntrladmin/about",{headers:owner})).text());
+  assert.equal(saved.revision,1);
+});
+test("news drafts publish independently of the journal and keep news navigation", async () => {
+  assert.match(await(await request("/news")).text(),/News and announcements will appear here/);
+  assert.equal((await request("/cntrladmin/news",{headers:reader})).status,404);
+  const editor=extract(await(await request("/cntrladmin/new?section=news",{headers:owner})).text());
+  assert.equal(editor.section,"news");
+  const base=extract(await(await request("/cntrladmin/edit/where-the-light-falls",{headers:owner})).text()).record.draft;
+  const doc={...base,id:"news-fixture",section:"news",title:"A published test update",category:"News",cover:"",frames:[],order:0};
+  const save=(action,revision,value=doc)=>post("entry",{doc:value,action,revision});
+  assert.equal((await save("draft",0)).status,200);
+  assert.equal((await request("/news/"+doc.id)).status,404);
+  assert.ok(!(await(await request("/news")).text()).includes(doc.title));
+  assert.equal((await request("/cntrladmin/preview/"+doc.id,{headers:owner})).status,200);
+  assert.equal((await save("publish",1)).status,200);
+  const article=await(await request("/news/"+doc.id)).text();
+  assert.equal(extract(article).doc.section,"news");
+  assert.match(article,/Back to news/);
+  assert.equal((await request("/story/"+doc.id)).status,404);
+  for(const route of ["/","/archive","/cntrladmin"]){
+    assert.ok(!(await(await request(route,{headers:owner})).text()).includes(doc.title),route);
+  }
+  const list=await(await request("/cntrladmin/news",{headers:owner})).text();assert.ok(list.includes(doc.title));
+  assert.ok((await(await request("/news")).text()).includes(doc.title));
+  const revised={...doc,title:"A private revised update"};
+  assert.equal((await save("draft",2,revised)).status,200);
+  assert.ok(!(await(await request("/news")).text()).includes(revised.title));
+  const next={...doc,id:"second-news-fixture",title:"The next test update",order:1};
+  assert.equal((await post("entry",{doc:next,action:"publish",revision:0})).status,200);
+  assert.match(await(await request("/news/"+doc.id)).text(),/rel="next" href="\/news\/second-news-fixture"/);
+  assert.equal((await save("unpublish",3,revised)).status,200);
+  assert.equal((await request("/news/"+doc.id)).status,404);
+  assert.ok(!(await(await request("/news")).text()).includes(doc.title));
+});

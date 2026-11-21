@@ -7,6 +7,7 @@ export type Frame = {
 };
 export type Entry = {
   id: string; title: string; deck: string; category: string; location: string; date: string;
+  section?: "journal" | "news";
   cover: string; coverCaption: string; coverAlt: string; coverOverlay?: string;
   coverOverlayAt?: Frame["overlayAt"]; order: number; columns: number;
   align: "justify" | "left" | "center" | "right"; pages: number; body: Paragraph[]; frames: Frame[];
@@ -19,3 +20,4 @@ export type StoredEntry = { id: string; revision: number; draft: string; live: s
 export type EditEntry = { id: string; revision: number; draft: Entry; published: boolean; pending: boolean; sample: boolean };
 export type Contacts = { instagram: string; whatsapp: string; telegram: string; email: string; phone: string };
 export type Letter = { id: number; sender: string; email: string; body: string; received: number };
+export type About = { body: string; revision: number };

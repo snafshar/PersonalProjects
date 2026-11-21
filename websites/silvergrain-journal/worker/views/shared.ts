@@ -16,7 +16,7 @@ const paths:Record<string,string>={
 };
 export const icon=(name:string)=>`<svg class="icon" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${paths[name]??""}</svg>`;
 export const dateText=(date:string)=>new Date(date+"T12:00:00Z").toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric",timeZone:"UTC"});
-export const pathFor=(d:Entry)=>"/story/"+d.id;
+export const pathFor=(d:Pick<Entry,"id"|"section">)=>(d.section==="news"?"/news/":"/story/")+d.id;
 export const assetsMap=(assets:Asset[])=>new Map(assets.map(a=>[a.id,a]));
 export function mediaElement(m:Asset,alt:string,mode:"hero"|"card"|"body"="body"){
   if(m.kind==="video")return `<video ${mode==="body"?"controls":"muted"} playsinline preload="metadata" aria-label="${esc(alt||m.name)}" src="${esc(m.url)}#t=0.01"></video>`;
@@ -35,7 +35,7 @@ export function figure(f:Frame,m:Asset){
   return `<figure class="flow-figure"><div class="media-wrap">${mediaElement(m,f.alt)}${f.overlay?`<span class="on-photo ${f.overlayAt}">${esc(f.overlay)}</span>`:""}</div>${f.caption?`<figcaption>${esc(f.caption)}</figcaption>`:""}</figure>`;
 }
 export function shell(title:string,body:string,active="",scripts:string[]=[],privatePage=false,description="A personal journal of photographs and stories by Sina Afshar."){
-  const nav=[["/","Home"],["/archive","Journal"],["/contact","Contact"]];
+  const nav=[["/","Home"],["/archive","Journal"],["/about","About me"],["/news","News"],["/contact","Contact"]];
   const brand=`<a class="brand" href="/" aria-label="MyPhotoStories home"><span class="brand-mark" aria-hidden="true"></span><span class="brand-word">MyPhotoStories</span></a>`;
   const header=privatePage?`<header class="studio-mast wrap"><a class="mini-brand" href="/">MyPhotoStories</a><span>Private studio</span><a class="quiet-link" href="/signout-with-chatgpt?return_to=%2F" target="_top">Sign out</a></header>`:
   `<header class="site-header${active==="Home"?" cover-header":""}"><div class="wrap header-inner">${brand}<nav class="site-nav" aria-label="Main navigation">${nav.map(([url,label])=>`<a href="${url}"${active===label?' aria-current="page"':""}>${label}</a>`).join("")}</nav></div></header>`;

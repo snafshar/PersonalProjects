@@ -1,5 +1,5 @@
 import { sampleMedia, samples } from "./samples";
-import type { Asset, Bindings, Contacts, EditEntry, Entry, Frame, Paragraph, Run, StoredEntry } from "./types";
+import type { About, Asset, Bindings, Contacts, EditEntry, Entry, Frame, Paragraph, Run, StoredEntry } from "./types";
 
 export class Problem extends Error {
   constructor(public status:number, message:string) { super(message); }
@@ -63,13 +63,13 @@ export async function liveEntries(env:Bindings):Promise<Entry[]> {
   for(const row of result.results){if(row.live)entries.set(row.id,JSON.parse(row.live));else entries.delete(row.id);}
   return [...entries.values()].sort(ordered);
 }
-type Neighbor = Pick<Entry,"id"|"title"|"date"|"order">;
-export async function neighbors(env:Bindings,id:string) {
-  const map = new Map<string, Neighbor>(samples.map(d=>[d.id,d]));
-  const rows = await env.DB.prepare("SELECT id, json_extract(live,'$.title') AS title, json_extract(live,'$.date') AS date, json_extract(live,'$.order') AS position FROM journal_entries").all<{id:string; title:string|null; date:string; position:number}>();
+type Neighbor = Pick<Entry,"id"|"title"|"date"|"order"|"section">;
+export async function neighbors(env:Bindings,id:string,section:"journal"|"news"="journal") {
+  const map = new Map<string, Neighbor>(section==="journal"?samples.map(d=>[d.id,d]):[]);
+  const rows = await env.DB.prepare("SELECT id, json_extract(live,'$.title') AS title, json_extract(live,'$.date') AS date, json_extract(live,'$.order') AS position, json_extract(live,'$.section') AS section FROM journal_entries").all<{id:string; title:string|null; date:string; position:number; section:Entry["section"]}>();
   for(const r of rows.results){
-    if(r.title===null)map.delete(r.id);
-    else map.set(r.id,{id:r.id,title:r.title,date:r.date,order:r.position});
+    if(r.title===null||(r.section||"journal")!==section)map.delete(r.id);
+    else map.set(r.id,{id:r.id,title:r.title,date:r.date,order:r.position,section:r.section});
   }
   const list=[...map.values()].sort(ordered), index=list.findIndex(n=>n.id===id);
   return index<0 ? {} : {previous:list[index-1],next:list[index+1]};
@@ -86,6 +86,7 @@ export async function editable(env:Bindings):Promise<EditEntry[]> {
 }
 function cleanDoc(raw:any):Entry {
   if(!raw || !validId(raw.id))return fail(422,"The story address is invalid.");
+  if(raw.section!==undefined&&!['journal','news'].includes(raw.section))fail(422,"Choose Journal or News for this publication.");
   const title=plain(raw.title,180,"the title").trim();
   if(!title)fail(422,"Give the story a title first.");
   const date=plain(raw.date,10,"the date");if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||Number.isNaN(Date.parse(date))||new Date(date).toISOString().slice(0,10)!==date)fail(422,"Choose a valid publication date.");
@@ -111,7 +112,7 @@ function cleanDoc(raw:any):Entry {
       y:integer(f.y,0,800-h,"the vertical position"),w,h,caption:plain(f.caption,600,"the caption"),overlay:plain(f.overlay,200,"the overlay"),
       alt:plain(f.alt,600,"alternative text"),overlayAt};
   });
-  return {id:raw.id,title,deck:plain(raw.deck,1000,"the introduction"),category:plain(raw.category,70,"the category").trim()||"Journal",
+  return {id:raw.id,section:raw.section||"journal",title,deck:plain(raw.deck,1000,"the introduction"),category:plain(raw.category,70,"the category").trim()||"Journal",
     location:plain(raw.location,100,"the location"),date,cover,coverCaption:plain(raw.coverCaption,600,"the cover caption"),
     coverAlt:plain(raw.coverAlt,600,"the cover description"),coverOverlay:plain(raw.coverOverlay??"",200,"the cover overlay"),
     coverOverlayAt:["top","center","bottom"].includes(raw.coverOverlayAt)?raw.coverOverlayAt:"bottom",columns:integer(raw.columns,1,4,"the column count"),
@@ -147,6 +148,27 @@ export async function saveEntry(env:Bindings,input:any) {
 export async function contacts(env:Bindings):Promise<Contacts> {
   const v=await env.DB.prepare("SELECT value FROM journal_settings WHERE name='contacts'").first<string>("value");
   return {instagram:"",whatsapp:"",telegram:"",email:"",phone:"",...(v ? JSON.parse(v) : {})};
+}
+export async function about(env:Bindings):Promise<About> {
+  const value=await env.DB.prepare("SELECT value FROM journal_settings WHERE name='about'").first<string>("value");
+  return value?JSON.parse(value):{
+    body:"I'm Sina Afshar, a photographer based in Pisa, Italy.\n\nMyPhotoStories is where I share my photographs and the stories behind them.",
+    revision:0,
+  };
+}
+export async function saveAbout(env:Bindings,input:any):Promise<About> {
+  const body=plain(input?.body,20000,"your biography").trim();
+  const revision=integer(input?.revision,0,2147483646,"the saved revision");
+  const value={body,revision:revision+1},serialized=JSON.stringify(value);
+  const query=revision===0
+    ?env.DB.prepare("INSERT INTO journal_settings(name,value) VALUES('about',?) ON CONFLICT(name) DO NOTHING").bind(serialized)
+    :env.DB.prepare("UPDATE journal_settings SET value=? WHERE name='about' AND json_extract(value,'$.revision')=?").bind(serialized,revision);
+  const result=await query.run();
+  if(result.meta.changes!==1){
+    const current=await env.DB.prepare("SELECT value FROM journal_settings WHERE name='about'").first<string>("value");
+    if(current!==serialized)fail(409,"Your biography changed in another tab. Copy your edits before reloading.");
+  }
+  return value;
 }
 export function validEmail(value:string) {
   return value.length <= 254 && /^[^\s@<>,;:\\"\x00-\x1f\x7f]+@[^\s@<>,;:\\"\x00-\x1f\x7f]+\.[^\s@<>,;:\\"\x00-\x1f\x7f]+$/u.test(value);
